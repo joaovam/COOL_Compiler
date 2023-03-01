@@ -5,7 +5,7 @@
 /*
  *  Stuff enclosed in %{ %} in the first section is copied verbatim to the
  *  output, so headers and global definitions are placed here to be visible
- * to the code in the file.  Don't remove anything that was here initially
+ * to the code in the file.  Dont remove anything that was here initially
  */
 %{
 #include <cool-parse.h>
@@ -44,11 +44,13 @@ extern YYSTYPE cool_yylval;
  */
 
 %}
+int curr_lineno = 0;
 
 /*
  * Define names for regular expressions here.
  */
-
+DIGIT [0-9]
+LETTER [a-Z]
 
 DARROW          =>
 
@@ -62,6 +64,10 @@ DARROW          =>
  /*
   *  The multiple-character operators.
   */
+
+  . {return ERROR;cool_yylval.error_msg = yytext; }//armazena erro que possa ter chegado ao final do lexer
+
+
 {DARROW}		{ return (DARROW); }
 
  /*
