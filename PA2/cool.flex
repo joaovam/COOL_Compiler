@@ -49,8 +49,37 @@ int curr_lineno = 0;
 /*
  * Define names for regular expressions here.
  */
+
 DIGIT [0-9]
-LETTER [a-Z]
+LOWERCASE_LETTER [a-z]
+UPPERCASE_LETTER [A-Z]
+WHITE_SPACE [\n\r\t\v\f ]
+
+a [aA]
+b [bB]
+c [cC]
+d [dD]
+e [eE]
+f [fF]
+g [gG]
+h [hH]
+i [iI]
+j [jJ]
+k [kK]
+l [lL]
+m [mM]
+n [nN]
+o [oO]
+p [pP]
+r [rR]
+s [sS]
+t [tT]
+u [uU]
+v [vV]
+w [wW]
+x [xX]
+y [yY]
+z [zZ]
 
 DARROW          =>
 
@@ -63,9 +92,33 @@ DARROW          =>
 
  /*
   *  The multiple-character operators.
+
   */
 
-  . {return ERROR;cool_yylval.error_msg = yytext; }//armazena erro que possa ter chegado ao final do lexer
+{DIGIT}+ { 
+      cool_yylval.symbol = inttable.add_string(yytext);
+      return INT_CONST;
+    }
+
+[a-z][_a-zA-Z0-9]* {
+      cool_yylval.symbol = idtable.add_string(yytext);
+      return OBJECTID;
+}
+
+
+{WHITE_SPACE}+ {}
+
+
+{i}{f} {return IF;}
+{t}{h}{e}{n} {return THEN;}
+{f}{i} {return FI;}
+{e}{l}{s}{e} {return ELSE;}
+
+t{r}{u}{e} {cool_yylval.boolean = true; return BOOL_CONST;}
+  . {
+      cool_yylval.error_msg = yytext;
+      return ERROR;
+     }//armazena erro que possa ter chegado ao final do lexer
 
 
 {DARROW}		{ return (DARROW); }
