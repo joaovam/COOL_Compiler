@@ -45,6 +45,9 @@ extern YYSTYPE cool_yylval;
 
 %}
 int curr_lineno = 0;
+%x cmt_1 
+%x cmt_2
+
 
 /*
  * Define names for regular expressions here.
@@ -53,7 +56,7 @@ int curr_lineno = 0;
 DIGIT [0-9]
 LOWERCASE_LETTER [a-z]
 UPPERCASE_LETTER [A-Z]
-WHITE_SPACE [\n\r\t\v\f ]
+WHITE_SPACE [\r\t\v\f ]
 
 a [aA]
 b [bB]
@@ -98,6 +101,24 @@ ASSIGNMENT <-
 
   */
 
+ //comment and endline section
+[\n] {curr_lineno++;}
+
+"--" {BEGIN(cmt_1);}
+"(*" {BEGIN(cmt_2);}
+"*)" {cool_yylval.error_msg ="“Unmatched *)"; return ERROR;}
+
+<cmt_1>[\n] {curr_lineno++;BEGIN(0);}
+<cmt_1><<EOF>> {cool_yylval.error_msg = "EOF in comment";BEGIN(0); return ERROR;}
+<cmt_1>. {;}
+
+<cmt_2><<EOF>> {cool_yylval.error_msg = "EOF in comment";BEGIN(0); return ERROR;}
+
+<cmt_2>[\n] {curr_lineno++;}
+<cmt_2>[*)] {BEGIN(0);}
+
+<cmt_2>. {;}
+
 {DIGIT}+ { /*number*/
       cool_yylval.symbol = inttable.add_string(yytext);
       return INT_CONST;
@@ -128,10 +149,9 @@ ASSIGNMENT <-
 {n}{o}{t} {return NOT;}
 {i}{s}{v}{o}{i}{d} {return ISVOID;}
 
+
+
 t{r}{u}{e} {cool_yylval.boolean = true; return BOOL_CONST;}
-
-
-
 f{a}{l}{s}{e} {cool_yylval.boolean = true; return BOOL_CONST;}
 
 
@@ -159,7 +179,6 @@ f{a}{l}{s}{e} {cool_yylval.boolean = true; return BOOL_CONST;}
 "-" {return '-';}
 "<" {return '<';}
 "=" {return '=';}
-">" {return '>';}
 
 "{" {return '{';}
 "}" {return '}';}
@@ -173,7 +192,6 @@ f{a}{l}{s}{e} {cool_yylval.boolean = true; return BOOL_CONST;}
   . {
       cool_yylval.error_msg = yytext;
       return ERROR;
-      printf("invalid token: %s", yytext);
      }//armazena erro que possa ter chegado ao final do lexer
 
 
