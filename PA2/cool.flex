@@ -115,10 +115,10 @@ DARROW          =>
 {e}{l}{s}{e} {return ELSE;}
 
 t{r}{u}{e} {cool_yylval.boolean = true; return BOOL_CONST;}
-  . {
-      cool_yylval.error_msg = yytext;
-      return ERROR;
-     }//armazena erro que possa ter chegado ao final do lexer
+ . {
+    cool_yylval.error_msg = yytext;
+    return ERROR;
+}//armazena erro que possa ter chegado ao final do lexer
 
 
 {DARROW}		{ return (DARROW); }
