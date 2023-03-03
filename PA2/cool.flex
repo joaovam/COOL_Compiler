@@ -45,6 +45,9 @@ extern YYSTYPE cool_yylval;
 
 %}
 int curr_lineno = 0;
+%x cmt_1 
+%x cmt_2
+
 
 /*
  * Define names for regular expressions here.
@@ -53,7 +56,7 @@ int curr_lineno = 0;
 DIGIT [0-9]
 LOWERCASE_LETTER [a-z]
 UPPERCASE_LETTER [A-Z]
-WHITE_SPACE [\n\r\t\v\f ]
+WHITE_SPACE [\r\t\v\f ]
 
 a [aA]
 b [bB]
@@ -71,6 +74,7 @@ m [mM]
 n [nN]
 o [oO]
 p [pP]
+q [qQ]
 r [rR]
 s [sS]
 t [tT]
@@ -81,7 +85,9 @@ x [xX]
 y [yY]
 z [zZ]
 
-DARROW          =>
+DARROW =>
+LARROW <=   
+ASSIGNMENT <-
 
 %%
 
@@ -95,33 +101,105 @@ DARROW          =>
 
   */
 
-{DIGIT}+ { 
+ //comment and endline section
+[\n] {curr_lineno++;}
+
+"--" {BEGIN(cmt_1);}
+"(*" {BEGIN(cmt_2);}
+"*)" {cool_yylval.error_msg ="“Unmatched *)"; return ERROR;}
+
+<cmt_1>[\n] {curr_lineno++;BEGIN(0);}
+<cmt_1><<EOF>> {cool_yylval.error_msg = "EOF in comment";BEGIN(0); return ERROR;}
+<cmt_1>. {;}
+
+<cmt_2><<EOF>> {cool_yylval.error_msg = "EOF in comment";BEGIN(0); return ERROR;}
+
+<cmt_2>[\n] {curr_lineno++;}
+<cmt_2>[*)] {BEGIN(0);}
+
+<cmt_2>. {;}
+
+{DIGIT}+ { /*number*/
       cool_yylval.symbol = inttable.add_string(yytext);
       return INT_CONST;
-    }
-
-[a-z][_a-zA-Z0-9]* {
-      cool_yylval.symbol = idtable.add_string(yytext);
-      return OBJECTID;
 }
-
-
 {WHITE_SPACE}+ {}
 
 
 {i}{f} {return IF;}
 {t}{h}{e}{n} {return THEN;}
-{f}{i} {return FI;}
 {e}{l}{s}{e} {return ELSE;}
+{f}{i} {return FI;}
+
+{c}{l}{a}{s}{s} {return CLASS;}
+{i}{n}{h}{e}{r}{i}{t}{s} {return INHERITS;}
+{n}{e}{w} {return NEW;}
+
+{l}{e}{t} {return LET;}
+{i}{n} {return IN;}
+
+{c}{a}{s}{e} {return CASE;}
+{e}{s}{a}{c} {return ESAC;}
+
+{w}{h}{i}{l}{e} {return WHILE;}
+{l}{o}{o}{p} {return LOOP;}
+{p}{o}{o}{l} {return POOL;}
+
+{o}{f} {return OF;}
+{n}{o}{t} {return NOT;}
+{i}{s}{v}{o}{i}{d} {return ISVOID;}
+
+
 
 t{r}{u}{e} {cool_yylval.boolean = true; return BOOL_CONST;}
- . {
-    cool_yylval.error_msg = yytext;
-    return ERROR;
-}//armazena erro que possa ter chegado ao final do lexer
+f{a}{l}{s}{e} {cool_yylval.boolean = true; return BOOL_CONST;}
 
 
+[a-z][_a-zA-Z0-9]* {/*object id*/
+      cool_yylval.symbol = idtable.add_string(yytext);
+      return OBJECTID;
+}
+
+[A-Z][_a-zA-Z0-9]* {/*type id*/
+      cool_yylval.symbol = idtable.add_string(yytext);
+      return TYPEID;
+}
+
+
+{ASSIGNMENT} {return ASSIGN;}
 {DARROW}		{ return (DARROW); }
+
+ /*operators*/
+"." {return '.';}
+"@" {return '@';}
+"~" {return '~';}
+"*" {return '*';}
+"/" {return '/';}
+"+" {return '+';}
+"-" {return '-';}
+"<" {return '<';}
+"=" {return '=';}
+
+"{" {return '{';}
+"}" {return '}';}
+";" {return ';';}
+"(" {return '(';}
+")" {return ')';}
+":" {return ':';}
+
+
+
+  . {
+      cool_yylval.error_msg = yytext;
+      return ERROR;
+     }//armazena erro que possa ter chegado ao final do lexer
+
+
+
+
+
+
+
 
  /*
   * Keywords are case-insensitive except for the values true and false,
