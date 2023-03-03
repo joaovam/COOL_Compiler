@@ -115,7 +115,7 @@ ASSIGNMENT <-
 <cmt_2><<EOF>> {cool_yylval.error_msg = "EOF in comment";BEGIN(0); return ERROR;}
 
 <cmt_2>[\n] {curr_lineno++;} //verificar no manual se é necessário
-<cmt_2>[*)] {BEGIN(0);}
+<cmt_2>"*)" {BEGIN(0);}
 
 <cmt_2>. {;}
 
