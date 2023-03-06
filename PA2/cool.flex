@@ -20,6 +20,8 @@
 #define MAX_STR_CONST 1025
 #define YY_NO_UNPUT   /* keep g++ happy */
 
+int string_const_size = 0;
+
 extern FILE *fin; /* we read from this file */
 
 /* define YY_INPUT so we read from the FILE fin:
@@ -32,7 +34,6 @@ extern FILE *fin; /* we read from this file */
 		YY_FATAL_ERROR( "read() in flex scanner failed");
 
 char string_buf[MAX_STR_CONST]; /* to assemble string constants */
-char *string_buf_ptr;
 
 extern int curr_lineno;
 extern int verbose_flag;
@@ -47,6 +48,7 @@ extern YYSTYPE cool_yylval;
 int curr_lineno = 0;
 %x cmt_1 
 %x cmt_2
+%x string_constant
 
 
 /*
@@ -118,6 +120,27 @@ ASSIGNMENT <-
 <cmt_2>"*)" {BEGIN(0);}
 
 <cmt_2>. {;}
+
+\" {BEGIN(string_constant); string_const_size = 0; memset(string_buf, '\0', MAX_STR_CONST);}
+
+<string_constant>\n {cool_yylval.error_msg="Unterminated string constant", BEGIN(0); return ERROR;}
+
+<string_constant>\\[n] {strcat(string_buf,"\n"); string_const_size++;}
+
+<string_constant>[^\n\"] { strcat(string_buf, yytext); string_const_size++;}
+<string_constant>\" {
+      if(string_const_size >=MAX_STR_CONST){
+            cool_yylval.error_msg = "String constant too long";
+            BEGIN(0);
+            return ERROR;
+      }else{
+            cool_yylval.symbol = stringtable.add_string(string_buf);
+            BEGIN(0);
+            return STR_CONST;
+      }
+}
+      
+
 
 {DIGIT}+ { /*number*/
       cool_yylval.symbol = inttable.add_string(yytext);
