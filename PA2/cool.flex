@@ -107,7 +107,7 @@ ASSIGNMENT <-
 [\n] {curr_lineno++;}
 
 "--" {BEGIN(cmt_1);}
-"(d*" {BEGIN(cmt_2);}
+"(*" {BEGIN(cmt_2);}
 "*)" {cool_yylval.error_msg ="Unmatched *)"; return ERROR;}
 
 <cmt_1>[\n] {curr_lineno++;BEGIN(0);}
@@ -132,6 +132,7 @@ ASSIGNMENT <-
 <string_constant>\\[b] {strcat(string_buf,"\b"); string_const_size++;}
 <string_constant>\\[f] {strcat(string_buf,"\f"); string_const_size++;}
 <string_constant>[^\n\"] { strcat(string_buf, yytext); string_const_size++;}
+
 <string_constant>\" {
       if(string_const_size >= MAX_STR_CONST){
             cool_yylval.error_msg = "String constant too long";
