@@ -107,8 +107,8 @@ ASSIGNMENT <-
 [\n] {curr_lineno++;}
 
 "--" {BEGIN(cmt_1);}
-"(*" {BEGIN(cmt_2);}
-"*)" {cool_yylval.error_msg ="“Unmatched *)"; return ERROR;}
+"(d*" {BEGIN(cmt_2);}
+"*)" {cool_yylval.error_msg ="Unmatched *)"; return ERROR;}
 
 <cmt_1>[\n] {curr_lineno++;BEGIN(0);}
 <cmt_1><<EOF>> {cool_yylval.error_msg = "EOF in comment";BEGIN(0); return ERROR;}
@@ -124,12 +124,17 @@ ASSIGNMENT <-
 \" {BEGIN(string_constant); string_const_size = 0; memset(string_buf, '\0', MAX_STR_CONST);}
 
 <string_constant>\n {cool_yylval.error_msg="Unterminated string constant", BEGIN(0); return ERROR;}
+<string_constant>\0 {cool_yylval.error_msg="String contains null characters", BEGIN(0); return ERROR;}
 
+<string_constant>\\[0] {strcat(string_buf,"0"); string_const_size++;}
 <string_constant>\\[n] {strcat(string_buf,"\n"); string_const_size++;}
+<string_constant>\\[t] {strcat(string_buf,"\t"); string_const_size++;}
+<string_constant>\\[b] {strcat(string_buf,"\b"); string_const_size++;}
+<string_constant>\\[f] {strcat(string_buf,"\f"); string_const_size++;}
 
 <string_constant>[^\n\"] { strcat(string_buf, yytext); string_const_size++;}
 <string_constant>\" {
-      if(string_const_size >=MAX_STR_CONST){
+      if(string_const_size >= MAX_STR_CONST){
             cool_yylval.error_msg = "String constant too long";
             BEGIN(0);
             return ERROR;
@@ -190,7 +195,7 @@ f{a}{l}{s}{e} {cool_yylval.boolean = false; return BOOL_CONST;}
 
 
 {ASSIGNMENT} {return ASSIGN;}
-{DARROW}		{ return (DARROW); }
+
 
  /*operators*/
 "." {return '.';}
@@ -212,10 +217,14 @@ f{a}{l}{s}{e} {cool_yylval.boolean = false; return BOOL_CONST;}
 
 
 
-  . {
-      cool_yylval.error_msg = yytext;
-      return ERROR;
-     }//armazena erro que possa ter chegado ao final do lexer
+
+
+{DARROW}		{ return (DARROW); }
+
+. {
+cool_yylval.error_msg = yytext;
+return ERROR;
+}//armazena erro que possa ter chegado ao final do lexer
 
 
 
