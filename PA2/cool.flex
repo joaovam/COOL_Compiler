@@ -21,6 +21,7 @@
 #define YY_NO_UNPUT   /* keep g++ happy */
 
 int string_const_size = 0;
+int nested = 0;
 
 extern FILE *fin; /* we read from this file */
 
@@ -49,6 +50,8 @@ int curr_lineno = 0;
 %x cmt_1 
 %x cmt_2
 %x string_constant
+%x skip_str
+%x count_line
 
 
 /*
@@ -107,7 +110,7 @@ ASSIGNMENT <-
 [\n] {curr_lineno++;}
 
 "--" {BEGIN(cmt_1);}
-"(*" {BEGIN(cmt_2);}
+"(*" {BEGIN(cmt_2);nested = 1;}
 "*)" {cool_yylval.error_msg ="Unmatched *)"; return ERROR;}
 
 <cmt_1>[\n] {curr_lineno++;BEGIN(0);}
@@ -117,22 +120,48 @@ ASSIGNMENT <-
 <cmt_2><<EOF>> {cool_yylval.error_msg = "EOF in comment";BEGIN(0); return ERROR;}
 
 <cmt_2>[\n] {curr_lineno++;} //verificar no manual se é necessário
-<cmt_2>"*)" {BEGIN(0);}
+<cmt_2>"(*" {nested++;}
+
+<cmt_2>"*)" {
+      nested--;
+      
+      if(nested == 0)
+            BEGIN(0);
+            
+      }
 
 <cmt_2>. {;}
 
 \" {BEGIN(string_constant); string_const_size = 0; memset(string_buf, '\0', MAX_STR_CONST);}
 
-<string_constant>\n {cool_yylval.error_msg="Unterminated string constant", BEGIN(0); return ERROR;}
-<string_constant>\0 {cool_yylval.error_msg="String contains null characters", BEGIN(0); return ERROR;}
+
+
+<string_constant,skip_str>\n {cool_yylval.error_msg="Unterminated string constant"; curr_lineno++; BEGIN(0);return ERROR; }
+<string_constant>\\\n { strcat (string_buf,"\n"); curr_lineno++; string_const_size++;}
+<string_constant,skip_str>\0 {cool_yylval.error_msg="String contains null characters"; BEGIN(0); return ERROR;}
+<string_constant,skip_str><<EOF>> {cool_yylval.error_msg = "EOF in String"; BEGIN(0); return ERROR;}
+<skip_str>\" {BEGIN(0);cool_yylval.error_msg = "String constant too long";return ERROR;}
+<skip_str>. {}
+
 
 <string_constant>\\[0] {strcat(string_buf,"0"); string_const_size++;}
 <string_constant>\\[n] {strcat(string_buf,"\n"); string_const_size++;}
 <string_constant>\\[t] {strcat(string_buf,"\t"); string_const_size++;}
 <string_constant>\\[b] {strcat(string_buf,"\b"); string_const_size++;}
 <string_constant>\\[f] {strcat(string_buf,"\f"); string_const_size++;}
+<string_constant>\\. {strcat(string_buf, &yytext[1]);string_const_size++;}
 
-<string_constant>[^\n\"] { strcat(string_buf, yytext); string_const_size++;}
+<string_constant>[^\n\"] { 
+      if(string_const_size< MAX_STR_CONST){
+            strcat(string_buf, yytext); string_const_size++;
+      }else{
+            
+            BEGIN(skip_str);
+            
+      }
+}
+
+
 
 <string_constant>\" {
       if(string_const_size >= MAX_STR_CONST){
