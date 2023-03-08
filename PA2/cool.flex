@@ -245,6 +245,7 @@ f{a}{l}{s}{e} {cool_yylval.boolean = false; return BOOL_CONST;}
 "(" {return '(';}
 ")" {return ')';}
 ":" {return ':';}
+"," {return ',';}
 
 
 
