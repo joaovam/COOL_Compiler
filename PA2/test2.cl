@@ -6,7 +6,7 @@
 
 (*Identificadores self e SELF_TYPE*) A OK
 
-(*Símbolos sintáticos*) A
+(*Símbolos sintáticos*) A falta @ e => (vai ser usado no case)
 
 (*Strings com caracteres de escape (\b, \t, \n, \f)*) F
 
@@ -26,24 +26,15 @@
 
 (*Comentários multilinha*) A OK
 
-(*Comentário passando os limites do arquivo (muito longos)*) A
+(*Comentário passando os limites do arquivo (muito longos)*) A OK
 
-(*Palavras-chave (class, else, false, fi, if, in, inherits, isvoid, let, loop, pool, then, while,
+(*Palavras-chave (class OK, else OK, false, fi OK, if OK, in, inherits OK, isvoid, let, loop, pool, then OK, while,
 case, esac, new, of, not, true)*) F
 
 (*Whitespace*) F
 
-
-class Main {
-    (*Testando identificadores de tipo e de objeto*)
-    this_is_valid : Object;
-    this_is_valid1 : Object;
-    This_is_not_valid : Object;
-    _this_is_not_valid : Object;
-    1this_is_not_valid : Object;
-    this-is-not-valid : Object;
-    this.is.not.valid : Object;
-    this_is_not_valid1 : object;
+(*Testando palavra-chave "class" e "inherits" e operadores sintáticos "{" e "}"*)
+class Main inherits IO {
 
     -- Testando comentário de uma linha
     -- (*Testando comentário de uma linha
@@ -53,12 +44,55 @@ class Main {
     multilinha*)
     (*Testando(*comentários(*ani*)nha*)dos*)
     Testando comentário inválido *)
+    (*Testando comentário muito longolongolongolongolongolongolongolongolongolongolongolongolongolongo
+    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
+    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
+    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
+    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
+    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
+    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
+    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
+    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
+    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
+    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
+    longolongolongolongolongolongo*)
 
-    (*Testando identificador SELF_TYPE*)
+    (*Testando identificadores de tipo e de objeto e operadores sintáticos ":" e ";"*)
+    valido : Int;
+    va_li_do : Int;
+    valido1 : Int;
+    Invalido : Int; (*Identificadores de objeto não podem começar com letra maiúscula*)
+    _invalido : Int; (*Identificadores de objeto não podem começar com _*)
+    1invalido : Int; (*Identificadores de objeto não podem começar com dígito*)
+    in-va-li-do : Int; (*Identificadores de objeto não podem ter -*)
+    in.va.li.do : Int; (*Identificadores de objeto não podem ter .*)
+    invalido : int; (*Identificadores de tipo não podem começar com letra minúscula*)
+
+    (*Testando identificador SELF_TYPE e operadores sintáticos "(" e ")"*)
     main() : SELF_TYPE {
         {
-            (*Testando identificador self*)
-            self.out_string("Teste");
+            (*Testando operador de atribuição*)
+            valido <- 1;
+            va_li_do <- 2;
+            valido1 <- 3;
+
+            (*Testando operadores aritméticos*)
+            valido <- va_li_do + valido1;
+            valido <- va_li_do - valido1;
+            valido <- va_li_do * valido1;
+            valido <- va_li_do / valido1;
+            valido <- ~va_li_do;
+
+            (*Testando operadores lógicos e palavras-chave*)
+            if (valido = 0) then 0 else
+            if (valido <= 1) then 1 else
+            if (valido < 2) then 2 else
+            if (valido >= 3) then 3 else (*>= é inválido*)
+            if (valido = 3) then valido++ else (*valido++ é inválido*)
+            fi fi fi fi fi
+
+            (*Testando identificador self e operador sintático "."*)
+            self.out_string("Testando self");
             self;
         }
     };
