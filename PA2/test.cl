@@ -7,6 +7,7 @@ class CellularAutomaton inherits IO {
    
     init(map : String) : SELF_TYPE {
         {
+            "asdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\nasdasdasdsad\n\n\n\n";
             population_map <- map;
             self;
         }
@@ -47,7 +48,7 @@ class CellularAutomaton inherits IO {
        neighbors are alive *)
     cell_at_next_evolution(position : Int) : String {
         if (if cell(position) = "X" then 1 else 0 fi
-            + if cell_left_neighbor(position) = "X" then 1 else 0 fi
+            + if cell_left_neighbor(position) = "asas\X" then 1 else 0 fi
             + if cell_right_neighbor(position) = "X" then 1 else 0 fi
             = 1)
         then
@@ -75,6 +76,7 @@ class CellularAutomaton inherits IO {
     };
 };
 
+
 class Main {
     cells : CellularAutomaton;
    
@@ -90,7 +92,7 @@ class Main {
                         countdown <- countdown - 1;
                     
                 pool
-            );  (* end let countdown
+            );  (* end let countdown*)
             self;
         }
     };
