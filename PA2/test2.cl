@@ -1,4 +1,4 @@
-(*Inteiros*) F
+(*Inteiros*) F OK
 
 (*Identificadores de tipo*) A OK
 
@@ -8,17 +8,17 @@
 
 (*Símbolos sintáticos*) A falta @ e => (vai ser usado no case)
 
-(*Strings com caracteres de escape (\b, \t, \n, \f)*) F
+(*Strings com caracteres de escape (\b, \t, \n, \f)*) F OK
 
-(*Strings com \*) F
+(*Strings com \*) F OK
 
-(*Strings com nova linha sem caracteres de escape ou \*) F
+(*Strings com nova linha sem caracteres de escape ou \*) F OK
 
-(*Strings com EOF*) F
+(*Strings com EOF*) F OK
 
-(*Strings com null (caracter \0)*) F
+(*Strings com null (caracter \0)*) F OK
 
-(*Strings passando os limites do arquivo (muito longas)*) F
+(*Strings passando os limites do arquivo (muito longas)*) F OK
 
 (*Comentários de uma linha*) A OK
 
@@ -90,6 +90,38 @@ class Main inherits IO {
             if (valido >= 3) then 3 else (*>= é inválido*)
             if (valido = 3) then valido++ else (*valido++ é inválido*)
             fi fi fi fi fi
+            
+            (*Testando valores inteiros*)
+            valido <- 1234; -- Valor valido
+            valido <- 56.78; -- Valor invalido;
+            valido <- ~9012; -- Valor negativo valido
+            valido <- -3456; -- Valor negativo invalido
+            
+            (*Testando strings (String com EOF na ultima linha)*)
+            out_string("Esta eh uma string normal. Nada errado aqui ");
+            out_string("Esta string \ntem quebra de linha. ");
+            out_string("Esta string\b tem um backspace. ");
+            out_string("Esta string \t tem um tab. ");
+            out_string("Esta string \f tem um formfeed. ");
+            out_string("Esta string \ 
+                        tem um escape. ");
+            out_string("Esta string eh invalida,
+                        ta faltando escape. ");
+            out_string("Esta string tem um null \0 no meio dela, ta errado isso ai. ");
+            out_string("Esta string eh muito longa:\ 
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis vestibulum lorem at\
+            nulla mollis ultricies. Suspendisse scelerisque pharetra risus, id posuere nisi\
+            placerat quis. Phasellus eu tellus est. Suspendisse vitae vestibulum ex. Morbi dapibus\
+            placerat mi, porttitor porta ante gravida quis. Nunc fermentum arcu tortor, eu placerat\
+            magna iaculis nec. Vivamus laoreet egestas nibh sit amet mattis. Nullam euismod nunc a\
+            pellentesque cursus. Duis metus orci, gravida ac auctor sed, convallis vitae sapien.\
+            Donec luctus dictum urna. Etiam nec nulla eget justo pretium commodo vel a enim. Nunc\
+            eros ligula, posuere in tortor vel, laoreet vulputate tellus. In hendrerit eget lectus\
+            ut mattis. Curabitur non risus ut nibh gravida pretium. Interdum et malesuada fames ac\
+            ante ipsum primis in faucibus. Nam ac magna vestibulum, tempor nulla in, lobortis lacus.\
+            Integer ut mauris sed nunc congue posuere blandit sit amet erat. In aliquam magna non risus\
+            varius, id vestibulum nulla mattis. Cras pretium egestas justo, nec aliquam. ");
+            
 
             (*Testando identificador self e operador sintático "."*)
             self.out_string("Testando self");
@@ -97,3 +129,6 @@ class Main inherits IO {
         }
     };
 };
+
+(*Testando string com EOF*)
+"Esta string esta com EOF... That's all folks!
