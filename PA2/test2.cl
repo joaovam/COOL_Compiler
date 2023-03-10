@@ -28,8 +28,8 @@
 
 (*Comentário passando os limites do arquivo (muito longos)*) A OK
 
-(*Palavras-chave (class OK, else OK, false, fi OK, if OK, in, inherits OK, isvoid, let, loop, pool, then OK, while,
-case, esac, new, of, not, true)*) F
+(*Palavras-chave (class OK, else OK, false OK, fi OK, if OK, in, inherits OK, isvoid, let, loop OK, pool OK, then OK, while OK,
+case, esac, new, of, not OK, true OK)*) F
 
 (*Whitespace*) F
 
@@ -98,17 +98,17 @@ class Main inherits IO {
             valido <- -3456; -- Valor negativo invalido
             
             (*Testando strings (String com EOF na ultima linha)*)
-            out_string("Esta eh uma string normal. Nada errado aqui ");
-            out_string("Esta string \ntem quebra de linha. ");
-            out_string("Esta string\b tem um backspace. ");
-            out_string("Esta string \t tem um tab. ");
-            out_string("Esta string \f tem um formfeed. ");
-            out_string("Esta string \ 
+            self.out_string("Esta eh uma string normal. Nada errado aqui ");
+            self.out_string("Esta string \ntem quebra de linha. ");
+            self.out_string("Esta string\b tem um backspace. ");
+            self.out_string("Esta string \t tem um tab. ");
+            self.out_string("Esta string \f tem um formfeed. ");
+            self.out_string("Esta string \ 
                         tem um escape. ");
-            out_string("Esta string eh invalida,
+            self.out_string("Esta string eh invalida,
                         ta faltando escape. ");
-            out_string("Esta string tem um null \0 no meio dela, ta errado isso ai. ");
-            out_string("Esta string eh muito longa:\ 
+            self.out_string("Esta string tem um null \0 no meio dela, ta errado isso ai. ");
+            self.out_string("Esta string eh muito longa:\ 
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis vestibulum lorem at\
             nulla mollis ultricies. Suspendisse scelerisque pharetra risus, id posuere nisi\
             placerat quis. Phasellus eu tellus est. Suspendisse vitae vestibulum ex. Morbi dapibus\
@@ -121,7 +121,13 @@ class Main inherits IO {
             ante ipsum primis in faucibus. Nam ac magna vestibulum, tempor nulla in, lobortis lacus.\
             Integer ut mauris sed nunc congue posuere blandit sit amet erat. In aliquam magna non risus\
             varius, id vestibulum nulla mattis. Cras pretium egestas justo, nec aliquam. ");
+
+            (*Testando palavras-chave true e false*)
+            varVerdadeira : Bool <- true;
+            varFalsa : Bool <- false;
             
+            (*Testando palavras-chave while, loop, pool, not*)
+            while not(varFalsa) loop {} pool;
 
             (*Testando identificador self e operador sintático "."*)
             self.out_string("Testando self");
