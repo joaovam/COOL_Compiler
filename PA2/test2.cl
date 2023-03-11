@@ -121,7 +121,7 @@ class Main inherits IO {
             self.out_string("Esta string \t tem um tab. ");
             self.out_string("Esta string \f tem um formfeed. ");
             self.out_string("Esta string \
-                        tem um escape. ");
+                                tem um escape. ");
             self.out_string("Esta string eh invalida,
                         ta faltando escape. ");
             self.out_string("Esta string tem um \0 no meio dela, troca pra 0 isso ai. ");
