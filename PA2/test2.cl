@@ -120,12 +120,12 @@ class Main inherits IO {
             self.out_string("Esta string\b tem um backspace. ");
             self.out_string("Esta string \t tem um tab. ");
             self.out_string("Esta string \f tem um formfeed. ");
-            self.out_string("Esta string \ 
+            self.out_string("Esta string \
                         tem um escape. ");
             self.out_string("Esta string eh invalida,
                         ta faltando escape. ");
-            self.out_string("Esta string tem um null \0 no meio dela, ta errado isso ai. ");
-            self.out_string("Esta string eh muito longa:\ 
+            self.out_string("Esta string tem um \0 no meio dela, troca pra 0 isso ai. ");
+            self.out_string("Esta string eh muito longa:\
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis vestibulum lorem at\
             nulla mollis ultricies. Suspendisse scelerisque pharetra risus, id posuere nisi\
             placerat quis. Phasellus eu tellus est. Suspendisse vitae vestibulum ex. Morbi dapibus\

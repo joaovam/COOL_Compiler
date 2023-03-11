@@ -134,14 +134,15 @@ ASSIGNMENT <-
 
 \" {BEGIN(string_constant); string_const_size = 0; memset(string_buf, '\0', MAX_STR_CONST);}
 
+ /*usado para quebra de linha com "/" de escape*/
 
-
-<string_constant,skip_str>\n {cool_yylval.error_msg="Unterminated string constant"; curr_lineno++; BEGIN(0);return ERROR; }
 <string_constant>\\\n { strcat (string_buf,"\n"); curr_lineno++; string_const_size++;}
-<string_constant>\\0 {cool_yylval.error_msg="String contains null characters", BEGIN(0); return ERROR;}
+<string_constant,skip_str>\n {cool_yylval.error_msg="Unterminated string constant"; curr_lineno++; BEGIN(skip_str);return ERROR; }
+
 <string_constant,skip_str>\0 {cool_yylval.error_msg="String contains null characters"; BEGIN(0); return ERROR;}
 <string_constant,skip_str><<EOF>> {cool_yylval.error_msg = "EOF in String"; BEGIN(0); return ERROR;}
-<skip_str>\" {BEGIN(0);cool_yylval.error_msg = "String constant too long";return ERROR;}
+
+<skip_str>\" {BEGIN(0);}
 <skip_str>. {}
 
 
