@@ -123,3 +123,20 @@ Instructions
 Write-up for PA2
 ----------------
 
+Para o projeto de Analisador Léxico da linguagem COOL, criamos algumas variavéis globais para auxiliar na
+construção do projeto, como a variavél nested que controla comentários aninhados dentro da lógica de que 
+o fechamento de comentário deve considerar a abertura mais recente. 
+
+Utilizamos da seção de definições para criar as variavéis de estado usadas dentro da seção de regras, 
+bem como atribuir nome a certas expressões regulares, como associar a expressão [0-9] ao nome DIGIT,
+facilitando a construção do projeto.
+Dentro das variavéis de estado, usamos duas pra ser usadas no controle de abertura de comentários, uma de 
+comentários de uma linha (cmt_1) e outra para comentários de uma ou mais linhas (cmt_2).
+
+Também um estado para definir o inicio de uma string constante (string_constant) e detectar erros dentro das
+expressões como um Fim de Arquivo dentro da constante (EOF), ou uma string terminada no meio. 
+E também aplicar regras dentro das strings como tabulações ou definir o tamanho da string. 
+Uma outra variável de estado (skip_str) é utilizada para definir o que fazer quando o tamanho da string 
+for maior que o limite. 
+
+Dentro da seção de Regras, utilizamos as variavéis globais e de estados mais as expressões regulares para construir a lógica do analisador léxico: o que fazer diante de cada caso, qual erro retornar, etc.
