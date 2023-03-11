@@ -28,12 +28,29 @@
 
 (*Comentário passando os limites do arquivo (muito longos)*) A OK
 
-(*Palavras-chave (class OK, else OK, false OK, fi OK, if OK, in, inherits OK, isvoid, let, loop OK, pool OK, then OK, while OK,
-case, esac, new, of, not OK, true OK)*) F
+(*Palavras-chave (class OK, else OK, false OK, fi OK, if OK, in OK, inherits OK, isvoid OK, let OK, loop OK, pool OK, then OK, while OK,
+case OK, esac OK, new OK, of OK, not OK, true OK)*) F
 
 (*Whitespace*) F
 
-(*Testando palavra-chave "class" e "inherits" e operadores sintáticos "{" e "}"*)
+(*Testando palavras-chave "class" e "inherits" e operadores sintáticos "{" e "}"*)
+class ClasseTeste {
+
+    contaAteDez : SELF_TYPE {
+    
+        (*Testando palavras-chave "let", "in", "while", "loop", "pool" e "new"*)
+        (let c : Int <- 1 in {
+        
+            while c <= 10 loop {
+            
+                (new IO).out_int(c);
+                c <- c + 1;
+            } pool;
+            self;
+        })
+    };
+};
+
 class Main inherits IO {
 
     -- Testando comentário de uma linha
@@ -126,8 +143,15 @@ class Main inherits IO {
             varVerdadeira : Bool <- true;
             varFalsa : Bool <- false;
             
-            (*Testando palavras-chave while, loop, pool, not*)
-            while not(varFalsa) loop {} pool;
+            testeClasse : ClasseTeste <- new ClasseTeste;
+            
+            (*Testando palavras-chave "not" e "isvoid"*) 
+            if not(isvoid(testeClasse)) then {
+                testeClasse.contaAteDez();
+            } else {} fi;
+            
+            (*Testando palavras chave "case", "esac" e "of"*)
+            case of esac;
 
             (*Testando identificador self e operador sintático "."*)
             self.out_string("Testando self");
