@@ -942,7 +942,7 @@ YY_RULE_SETUP
 case 12:
 YY_RULE_SETUP
 #line 139 "cool.flex"
-{ strcat(string_buf,""); curr_lineno++; string_const_size++;}
+{ curr_lineno++; string_const_size++;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
