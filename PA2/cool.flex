@@ -46,6 +46,7 @@ extern YYSTYPE cool_yylval;
  */
 
 %}
+/* variáveis de controle*/
 int curr_lineno = 0;
 %x cmt_1 
 %x cmt_2
