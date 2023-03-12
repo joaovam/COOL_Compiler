@@ -1,0 +1,403 @@
+#name "test.cl"
+#1 TYPEID F
+#1 TYPEID OK
+#3 TYPEID A
+#3 TYPEID OK
+#5 TYPEID A
+#5 TYPEID OK
+#7 TYPEID A
+#7 TYPEID OK
+#9 TYPEID A
+#9 OBJECTID falta
+#9 '@'
+#9 OBJECTID e
+#9 DARROW
+#9 '('
+#9 OBJECTID vai
+#9 OBJECTID ser
+#9 OBJECTID usado
+#9 OBJECTID no
+#9 CASE
+#9 ')'
+#11 TYPEID F
+#11 TYPEID OK
+#13 TYPEID F
+#13 TYPEID OK
+#15 TYPEID F
+#15 TYPEID OK
+#17 TYPEID F
+#17 TYPEID OK
+#19 TYPEID F
+#19 TYPEID OK
+#21 TYPEID F
+#21 TYPEID OK
+#23 TYPEID A
+#23 TYPEID OK
+#25 TYPEID A
+#25 TYPEID OK
+#27 TYPEID A
+#27 TYPEID OK
+#29 TYPEID A
+#29 TYPEID OK
+#32 TYPEID F
+#34 TYPEID F
+#37 CLASS
+#37 TYPEID ClasseTeste
+#37 '{'
+#39 OBJECTID contaAteDez
+#39 ':'
+#39 TYPEID SELF_TYPE
+#39 '{'
+#42 '('
+#42 LET
+#42 OBJECTID c
+#42 ':'
+#42 TYPEID Int
+#42 ASSIGN
+#42 INT_CONST 1
+#42 IN
+#42 '{'
+#44 WHILE
+#44 OBJECTID c
+#44 '<'
+#44 '='
+#44 INT_CONST 10
+#44 LOOP
+#44 '{'
+#46 '('
+#46 NEW
+#46 TYPEID IO
+#46 ')'
+#46 '.'
+#46 OBJECTID out_int
+#46 '('
+#46 OBJECTID c
+#46 ')'
+#46 ';'
+#47 OBJECTID c
+#47 ASSIGN
+#47 OBJECTID c
+#47 '+'
+#47 INT_CONST 1
+#47 ';'
+#48 '}'
+#48 POOL
+#48 ';'
+#49 OBJECTID self
+#49 ';'
+#50 '}'
+#50 ')'
+#51 '}'
+#51 ';'
+#52 '}'
+#52 ';'
+#54 CLASS
+#54 TYPEID Main
+#54 INHERITS
+#54 TYPEID IO
+#54 '{'
+#63 TYPEID Testando
+#63 OBJECTID coment
+#63 ERROR "\303"
+#63 ERROR "\241"
+#63 OBJECTID rio
+#63 OBJECTID inv
+#63 ERROR "\303"
+#63 ERROR "\241"
+#63 OBJECTID lido
+#63 ERROR "Unmatched *)"
+#78 OBJECTID valido
+#78 ':'
+#78 TYPEID Int
+#78 ';'
+#79 OBJECTID va_li_do
+#79 ':'
+#79 TYPEID Int
+#79 ';'
+#80 OBJECTID valido1
+#80 ':'
+#80 TYPEID Int
+#80 ';'
+#81 TYPEID Invalido
+#81 ':'
+#81 TYPEID Int
+#81 ';'
+#82 ERROR "_"
+#82 OBJECTID invalido
+#82 ':'
+#82 TYPEID Int
+#82 ';'
+#83 INT_CONST 1
+#83 OBJECTID invalido
+#83 ':'
+#83 TYPEID Int
+#83 ';'
+#84 IN
+#84 '-'
+#84 OBJECTID va
+#84 '-'
+#84 OBJECTID li
+#84 '-'
+#84 OBJECTID do
+#84 ':'
+#84 TYPEID Int
+#84 ';'
+#85 IN
+#85 '.'
+#85 OBJECTID va
+#85 '.'
+#85 OBJECTID li
+#85 '.'
+#85 OBJECTID do
+#85 ':'
+#85 TYPEID Int
+#85 ';'
+#86 OBJECTID invalido
+#86 ':'
+#86 OBJECTID int
+#86 ';'
+#89 OBJECTID main
+#89 '('
+#89 ')'
+#89 ':'
+#89 TYPEID SELF_TYPE
+#89 '{'
+#90 '{'
+#92 OBJECTID valido
+#92 ASSIGN
+#92 INT_CONST 1
+#92 ';'
+#93 OBJECTID va_li_do
+#93 ASSIGN
+#93 INT_CONST 2
+#93 ';'
+#94 OBJECTID valido1
+#94 ASSIGN
+#94 INT_CONST 3
+#94 ';'
+#97 OBJECTID valido
+#97 ASSIGN
+#97 OBJECTID va_li_do
+#97 '+'
+#97 OBJECTID valido1
+#97 ';'
+#98 OBJECTID valido
+#98 ASSIGN
+#98 OBJECTID va_li_do
+#98 '-'
+#98 OBJECTID valido1
+#98 ';'
+#99 OBJECTID valido
+#99 ASSIGN
+#99 OBJECTID va_li_do
+#99 '*'
+#99 OBJECTID valido1
+#99 ';'
+#100 OBJECTID valido
+#100 ASSIGN
+#100 OBJECTID va_li_do
+#100 '/'
+#100 OBJECTID valido1
+#100 ';'
+#101 OBJECTID valido
+#101 ASSIGN
+#101 '~'
+#101 OBJECTID va_li_do
+#101 ';'
+#104 IF
+#104 '('
+#104 OBJECTID valido
+#104 '='
+#104 INT_CONST 0
+#104 ')'
+#104 THEN
+#104 INT_CONST 0
+#104 ELSE
+#105 IF
+#105 '('
+#105 OBJECTID valido
+#105 '<'
+#105 '='
+#105 INT_CONST 1
+#105 ')'
+#105 THEN
+#105 INT_CONST 1
+#105 ELSE
+#106 IF
+#106 '('
+#106 OBJECTID valido
+#106 '<'
+#106 INT_CONST 2
+#106 ')'
+#106 THEN
+#106 INT_CONST 2
+#106 ELSE
+#107 IF
+#107 '('
+#107 OBJECTID valido
+#107 ERROR ">"
+#107 '='
+#107 INT_CONST 3
+#107 ')'
+#107 THEN
+#107 INT_CONST 3
+#107 ELSE
+#108 IF
+#108 '('
+#108 OBJECTID valido
+#108 '='
+#108 INT_CONST 3
+#108 ')'
+#108 THEN
+#108 OBJECTID valido
+#108 '+'
+#108 '+'
+#108 ELSE
+#109 FI
+#109 FI
+#109 FI
+#109 FI
+#109 FI
+#112 OBJECTID valido
+#112 ASSIGN
+#112 INT_CONST 1234
+#112 ';'
+#113 OBJECTID valido
+#113 ASSIGN
+#113 INT_CONST 56
+#113 '.'
+#113 INT_CONST 78
+#113 ';'
+#114 OBJECTID valido
+#114 ASSIGN
+#114 '~'
+#114 INT_CONST 9012
+#114 ';'
+#115 OBJECTID valido
+#115 ASSIGN
+#115 '-'
+#115 INT_CONST 3456
+#115 ';'
+#118 OBJECTID self
+#118 '.'
+#118 OBJECTID out_string
+#118 '('
+#118 STR_CONST "Esta eh uma string normal. Nada errado aqui "
+#118 ')'
+#118 ';'
+#119 OBJECTID self
+#119 '.'
+#119 OBJECTID out_string
+#119 '('
+#119 STR_CONST "Esta string \ntem quebra de linha. "
+#119 ')'
+#119 ';'
+#120 OBJECTID self
+#120 '.'
+#120 OBJECTID out_string
+#120 '('
+#120 STR_CONST "Esta string\b tem um backspace. "
+#120 ')'
+#120 ';'
+#121 OBJECTID self
+#121 '.'
+#121 OBJECTID out_string
+#121 '('
+#121 STR_CONST "Esta string \t tem um tab. "
+#121 ')'
+#121 ';'
+#122 OBJECTID self
+#122 '.'
+#122 OBJECTID out_string
+#122 '('
+#122 STR_CONST "Esta string \f tem um formfeed. "
+#122 ')'
+#122 ';'
+#123 OBJECTID self
+#123 '.'
+#123 OBJECTID out_string
+#123 '('
+#124 STR_CONST "Esta string                                 tem um escape. "
+#124 ')'
+#124 ';'
+#125 OBJECTID self
+#125 '.'
+#125 OBJECTID out_string
+#125 '('
+#126 ERROR "Unterminated string constant"
+#126 ')'
+#126 ';'
+#127 OBJECTID self
+#127 '.'
+#127 OBJECTID out_string
+#127 '('
+#127 STR_CONST "Esta string tem um 0 no meio dela, troca pra 0 isso ai. "
+#127 ')'
+#127 ';'
+#128 OBJECTID self
+#128 '.'
+#128 OBJECTID out_string
+#128 '('
+#139 ERROR "String constant too long"
+#140 ')'
+#140 ';'
+#143 OBJECTID varVerdadeira
+#143 ':'
+#143 TYPEID Bool
+#143 ASSIGN
+#143 BOOL_CONST true
+#143 ';'
+#144 OBJECTID varFalsa
+#144 ':'
+#144 TYPEID Bool
+#144 ASSIGN
+#144 BOOL_CONST false
+#144 ';'
+#146 OBJECTID testeClasse
+#146 ':'
+#146 TYPEID ClasseTeste
+#146 ASSIGN
+#146 NEW
+#146 TYPEID ClasseTeste
+#146 ';'
+#149 IF
+#149 NOT
+#149 '('
+#149 ISVOID
+#149 '('
+#149 OBJECTID testeClasse
+#149 ')'
+#149 ')'
+#149 THEN
+#149 '{'
+#150 OBJECTID testeClasse
+#150 '.'
+#150 OBJECTID contaAteDez
+#150 '('
+#150 ')'
+#150 ';'
+#151 '}'
+#151 ELSE
+#151 '{'
+#151 '}'
+#151 FI
+#151 ';'
+#154 CASE
+#154 OF
+#154 ESAC
+#154 ';'
+#157 OBJECTID self
+#157 '.'
+#157 OBJECTID out_string
+#157 '('
+#157 STR_CONST "Testando self"
+#157 ')'
+#157 ';'
+#158 OBJECTID self
+#158 ';'
+#159 '}'
+#160 '}'
+#160 ';'
+#161 '}'
+#161 ';'
+#164 ERROR "EOF in String"
