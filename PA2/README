@@ -139,4 +139,8 @@ E também aplicar regras dentro das strings como tabulações ou definir o taman
 Uma outra variável de estado (skip_str) é utilizada para definir o que fazer quando o tamanho da string 
 for maior que o limite. 
 
-Dentro da seção de Regras, utilizamos as variavéis globais e de estados mais as expressões regulares para construir a lógica do analisador léxico: o que fazer diante de cada caso, qual erro retornar, etc.
+Dentro da seção de Regras, utilizamos as variavéis globais e de estados mais as expressões regulares para 
+construir a lógica do analisador léxico: o que fazer diante de cada caso, qual erro retornar, etc.
+
+A ideia dos testes foi criar um código mais próximo possível de um programa real em cool que envolve o uso 
+de todas as regras que incluímos no analisador léxico, tanto casos corretos quanto incorretos.
