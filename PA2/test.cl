@@ -1,37 +1,4 @@
-(*Inteiros*) F OK
-
-(*Identificadores de tipo*) A OK
-
-(*Identificadores de objeto*) A OK
-
-(*Identificadores self e SELF_TYPE*) A OK
-
-(*Símbolos sintáticos*) A falta @ e => (vai ser usado no case)
-
-(*Strings com caracteres de escape (\b, \t, \n, \f)*) F OK
-
-(*Strings com \*) F OK
-
-(*Strings com nova linha sem caracteres de escape ou \*) F OK
-
-(*Strings com EOF*) F OK
-
-(*Strings com null (caracter \0)*) F OK
-
-(*Strings passando os limites do arquivo (muito longas)*) F OK
-
-(*Comentários de uma linha*) A OK
-
-(*Comentários aninhados*) A OK
-
-(*Comentários multilinha*) A OK
-
-(*Comentário passando os limites do arquivo (muito longos)*) A OK
-
-(*Palavras-chave (class OK, else OK, false OK, fi OK, if OK, in OK, inherits OK, isvoid OK, let OK, loop OK, pool OK, then OK, while OK,
-case OK, esac OK, new OK, of OK, not OK, true OK)*) F
-
-(*Whitespace*) F
+(*Elementos léxicos da linguagem COOL a serem testados: inteiros, identificadores, símbolos sintáticos, strings, comentários, palavras-chave e whitespace.*)
 
 (*Testando palavras-chave "class" e "inherits" e operadores sintáticos "{" e "}"*)
 class ClasseTeste {
@@ -41,6 +8,7 @@ class ClasseTeste {
         (*Testando palavras-chave "let", "in", "while", "loop", "pool" e "new"*)
         (let c : Int <- 1 in {
         
+            (*Testando operador sintático <=*)
             while c <= 10 loop {
             
                 (new IO).out_int(c);
@@ -61,18 +29,18 @@ class Main inherits IO {
     multilinha*)
     (*Testando(*comentários(*ani*)nha*)dos*)
     Testando comentário inválido *)
-    (*Testando comentário muito longolongolongolongolongolongolongolongolongolongolongolongolongolongo
-    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
-    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
-    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
-    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
-    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
-    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
-    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
-    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
-    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
-    longolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongolongo
-    longolongolongolongolongolongo*)
+    (*Testando comentário muito longo. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Nulla mollis ultricies. Suspendisse scelerisque pharetra risus, id posuere nisi
+    placerat quis. Phasellus eu tellus est. Suspendisse vitae vestibulum ex. Morbi dapibus
+    placerat mi, porttitor porta ante gravida quis. Nunc fermentum arcu tortor, eu placerat
+    magna iaculis nec. Vivamus laoreet egestas nibh sit amet mattis. Nullam euismod nunc a
+    pellentesque cursus. Duis metus orci, gravida ac auctor sed, convallis vitae sapien.
+    Donec luctus dictum urna. Etiam nec nulla eget justo pretium commodo vel a enim. Nunc
+    eros ligula, posuere in tortor vel, laoreet vulputate tellus. In hendrerit eget lectus
+    ut mattis. Curabitur non risus ut nibh gravida pretium. Interdum et malesuada fames ac
+    ante ipsum primis in faucibus. Nam ac magna vestibulum, tempor nulla in, lobortis lacus.
+    Integer ut mauris sed nunc congue posuere blandit sit amet erat. In aliquam magna non risus
+    varius, id vestibulum nulla mattis. Cras pretium egestas justo, nec aliquam.*)
 
     (*Testando identificadores de tipo e de objeto e operadores sintáticos ":" e ";"*)
     valido : Int;
@@ -100,32 +68,32 @@ class Main inherits IO {
             valido <- va_li_do / valido1;
             valido <- ~va_li_do;
 
-            (*Testando operadores lógicos e palavras-chave*)
+            (*Testando operadores lógicos e palavras-chave "if", "then", "else" e "fi"*)
             if (valido = 0) then 0 else
             if (valido <= 1) then 1 else
             if (valido < 2) then 2 else
             if (valido >= 3) then 3 else (*>= é inválido*)
-            if (valido = 3) then valido++ else (*valido++ é inválido*)
+            if (valido = 3) then valido++ else
             fi fi fi fi fi
             
             (*Testando valores inteiros*)
-            valido <- 1234; -- Valor valido
-            valido <- 56.78; -- Valor invalido;
-            valido <- ~9012; -- Valor negativo valido
-            valido <- -3456; -- Valor negativo invalido
+            valido <- 1234; (*Valor válido*)
+            valido <- 56.78; (*Valor inválido*)
+            valido <- ~9012; (*Valor negativo válido*)
+            valido <- -3456; (*Valor negativo inválido*)
             
             (*Testando strings (String com EOF na ultima linha)*)
-            self.out_string("Esta eh uma string normal. Nada errado aqui ");
+            self.out_string("Esta é uma string normal. Nada errado aqui ");
             self.out_string("Esta string \ntem quebra de linha. ");
             self.out_string("Esta string\b tem um backspace. ");
             self.out_string("Esta string \t tem um tab. ");
             self.out_string("Esta string \f tem um formfeed. ");
             self.out_string("Esta string \
                                 tem um escape. ");
-            self.out_string("Esta string eh invalida,
+            self.out_string("Esta string é inválida,
                         ta faltando escape. ");
-            self.out_string("Esta string tem um \0 no meio dela, troca pra 0 isso ai. ");
-            self.out_string("Esta string eh muito longa:\
+            self.out_string("Esta string tem um \0 no meio dela, troca para 0 isso ai. ");
+            self.out_string("Esta string é muito longa:\
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis vestibulum lorem at\
             nulla mollis ultricies. Suspendisse scelerisque pharetra risus, id posuere nisi\
             placerat quis. Phasellus eu tellus est. Suspendisse vitae vestibulum ex. Morbi dapibus\
@@ -139,9 +107,11 @@ class Main inherits IO {
             Integer ut mauris sed nunc congue posuere blandit sit amet erat. In aliquam magna non risus\
             varius, id vestibulum nulla mattis. Cras pretium egestas justo, nec aliquam. ");
 
-            (*Testando palavras-chave true e false*)
+            (*Testando palavras-chave "true" e "false"*)
             varVerdadeira : Bool <- true;
+            varVerdadeiraInvalida : Bool <- ture;
             varFalsa : Bool <- false;
+            varFalsaInvalida : Bool <- fales;
             
             testeClasse : ClasseTeste <- new ClasseTeste;
             
