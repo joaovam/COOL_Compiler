@@ -46,6 +46,7 @@ extern YYSTYPE cool_yylval;
  */
 
 %}
+/* variáveis de controle*/
 int curr_lineno = 0;
 %x cmt_1 
 %x cmt_2
@@ -119,7 +120,7 @@ ASSIGNMENT <-
 
 <cmt_2><<EOF>> {cool_yylval.error_msg = "EOF in comment";BEGIN(0); return ERROR;}
 
-<cmt_2>[\n] {curr_lineno++;} //verificar no manual se é necessário
+<cmt_2>[\n] {curr_lineno++;} 
 <cmt_2>"(*" {nested++;}
 
 <cmt_2>"*)" {
@@ -136,13 +137,14 @@ ASSIGNMENT <-
 
  /*usado para quebra de linha com "/" de escape*/
 
-<string_constant>\\\n { strcat (string_buf,"\n"); curr_lineno++; string_const_size++;}
-<string_constant,skip_str>\n {cool_yylval.error_msg="Unterminated string constant"; curr_lineno++; BEGIN(skip_str);return ERROR; }
+<string_constant>\\\n { curr_lineno++; string_const_size++;}
+<string_constant>\n {cool_yylval.error_msg="Unterminated string constant"; curr_lineno++; BEGIN(skip_str);return ERROR; }
 
-<string_constant,skip_str>\0 {cool_yylval.error_msg="String contains null characters"; BEGIN(0); return ERROR;}
-<string_constant,skip_str><<EOF>> {cool_yylval.error_msg = "EOF in String"; BEGIN(0); return ERROR;}
+<string_constant>\0 {cool_yylval.error_msg="String contains null characters"; BEGIN(0); return ERROR;}
+<string_constant><<EOF>> {cool_yylval.error_msg = "EOF in String"; BEGIN(0); return ERROR;}
 
 <skip_str>\" {BEGIN(0);}
+<skip_str>\n {curr_lineno++;}
 <skip_str>. {}
 
 
@@ -157,18 +159,18 @@ ASSIGNMENT <-
       if(string_const_size < MAX_STR_CONST){
             strcat(string_buf, yytext); string_const_size++;
       }else{
-            
+            cool_yylval.error_msg = "String constant too long";
             BEGIN(skip_str);
-            
+            return ERROR;
       }
 }
 
 
 
 <string_constant>\" {
-      if(string_const_size >= MAX_STR_CONST){
+      if(string_const_size > MAX_STR_CONST - 1){
             cool_yylval.error_msg = "String constant too long";
-            BEGIN(0);
+            BEGIN(skip_str);
             return ERROR;
       }else{
             cool_yylval.symbol = stringtable.add_string(string_buf);

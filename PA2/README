@@ -139,4 +139,10 @@ E também aplicar regras dentro das strings como tabulações ou definir o taman
 Uma outra variável de estado (skip_str) é utilizada para definir o que fazer quando o tamanho da string 
 for maior que o limite. 
 
-Dentro da seção de Regras, utilizamos as variavéis globais e de estados mais as expressões regulares para construir a lógica do analisador léxico: o que fazer diante de cada caso, qual erro retornar, etc.
+Dentro da seção de Regras, utilizamos as variavéis globais e de estados mais as expressões regulares para 
+construir a lógica do analisador léxico: o que fazer diante de cada caso, qual erro retornar, etc.
+
+As entradas de teste encontram-se no arquivo test.cl. A estratégia para construir as entradas baseou-se em
+analisar individualmente cada elemento da estrutura léxica da linguagem COOL (identificadores, operadores, 
+strings, etc), criando casos válidos e inválidos para cada um. Dessa forma, foi possível testar o analisador 
+léxico e todas as regras criadas. 
