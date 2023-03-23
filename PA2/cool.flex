@@ -154,7 +154,7 @@ ASSIGNMENT <-
 <string_constant>\\. {strcat(string_buf, &yytext[1]);string_const_size++;}
 
 <string_constant>[^\n\"] { 
-      if(string_const_size< MAX_STR_CONST){
+      if(string_const_size < MAX_STR_CONST){
             strcat(string_buf, yytext); string_const_size++;
       }else{
             
