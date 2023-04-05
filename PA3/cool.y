@@ -110,17 +110,56 @@ class_list
 	;
 
 /* If no parent is specified, the class inherits from the Object class. */
-class	: CLASS TYPEID '{' dummy_feature_list '}' ';'
+class	: CLASS TYPEID '{' feature_list '}' ';'
 		{ $$ = class_($2,idtable.add_string("Object"),$4,
 			      stringtable.add_string(curr_filename)); }
-	| CLASS TYPEID INHERITS TYPEID '{' dummy_feature_list '}' ';'
+	| CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
 		{ $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
 	;
 
 /* Feature list may be empty, but no empty features in list. */
-dummy_feature_list:		/* empty */
-                {  $$ = nil_Features(); }
+feature_list:		
+    /* empty */
+    {  $$ = nil_Features(); }
+| nonempty_feature_list {}
 
+
+nonempty_feature_list:
+    feature {$$ = nil_Features();}
+
+| nonempty_feature_list feature {$$ = append_Features($1, single_Features($2));}
+
+feature:
+OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
+  {$$ = method($1, $3, $6, $8);}
+
+| declaration ';'
+  {$$ = attr($1,$3, no_expr());}
+
+| OBJECTID ':' TYPEID ASSIGN expression ';'
+  {$$ = attr($1, $3, $5);}
+
+| error ';'
+  {$$ = $$;};
+
+formal_list:
+  {$$ = nil_formals();}
+| nonempty_formal_list
+  {}
+
+
+nonempty_formal_list:
+| declaration
+    {$$ = single_Formals($1);}
+| formal_list ',' declaration
+    {$$ = append_Formals($1, single_Formals($3));}
+
+
+declaration :
+    OBJECTID ':' TYPEID
+    {$$ = formal($1, $3);}
+
+  
 
 /* end of grammar */
 %%
