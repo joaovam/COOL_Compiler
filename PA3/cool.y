@@ -72,7 +72,20 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %type <class_> class
 
 /* You will want to change the following line. */
-%type <features> dummy_feature_list
+%type <features> feature_list
+%type <features> nonempty_feature_list
+%type <feature> feature
+
+%type <formals> formal_list
+%type <formals> nonempty_formal_list    
+%type <formal> declaration
+
+%type <expressions> expression_list nonempty_expression_list
+%type <expressions> expression_semicolon_list
+%type <expression> expression
+%type <cases> case_list
+%type <case_> case_
+%type <expression> let_list
 
 /* Precedence declarations go here. */
 %left '.'
@@ -160,6 +173,49 @@ declaration :
     {$$ = formal($1, $3);}
 
   
+expression_list:
+  %empty {$$ = nil_Expressions();}
+| nonempty_expression_list
+  {$$ = Expression()}
+
+nonempty_expression_list:
+  expression 
+  {$$ = single_Expressions($1);}
+| nonempty_expression_list ',' expression 
+  {a$$ = ppend_Expressions($1, single_Expressions($3));}
+
+expression_semicolon_list:
+expression
+ {$$ = single_Expressions($1);}
+
+| expression_semicolon_list ';' expression
+{$$ = append_Expressions($1, single_Expressions($3));}
+
+expression: //assignment, function call, while, if, expression blocks
+
+ OBJECTID ASSIGN expression
+  {$$ = assign($1,$3);}
+| expression '.' OBJECTID '(' expression_list ')'
+  {$$ = dispatch($1, $3, $5);}
+
+| WHILE expression LOOP expression POOL
+  {$$ = loop($2, $4);}
+
+| IF expression THEN expression ELSE expression FI
+  {$$ = cond($2, $4, $6);}
+
+| '{' expression_semicolon_list ';'
+  {$$ = block($2);}
+
+| '{' expression_semicolon_list ';' error ';'
+  {$$ = $$;}
+
+| '{' expression_semicolon_list ';' error ';' expression_semicolon_list ';'
+  {$$ = $$;}
+
+| error ';' expression_semicolon_list ';'
+  {$$ = $$;}
+
 
 /* end of grammar */
 %%
