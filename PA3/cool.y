@@ -83,9 +83,9 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %type <expressions> expression_list nonempty_expression_list
 %type <expressions> expression_semicolon_list
 %type <expression> expression
-%type <cases> case_list
+/* %type <cases> case_list
 %type <case_> case_
-%type <expression> let_list
+%type <expression> let_list */
 
 /* Precedence declarations go here. */
 %left '.'
@@ -146,7 +146,7 @@ feature:
 OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
   {$$ = method($1, $3, $6, $8);}
 
-| declaration ';'
+| OBJECTID ':' TYPEID ';'
   {$$ = attr($1,$3, no_expr());}
 
 | OBJECTID ':' TYPEID ASSIGN expression ';'
@@ -162,7 +162,7 @@ formal_list:
 
 
 nonempty_formal_list:
-| declaration
+declaration
     {$$ = single_Formals($1);}
 | formal_list ',' declaration
     {$$ = append_Formals($1, single_Formals($3));}
@@ -174,7 +174,7 @@ declaration :
 
   
 expression_list:
-  %empty {$$ = nil_Expressions();}
+  {$$ = nil_Expressions();}
 | nonempty_expression_list
   {$$ = Expression()}
 
