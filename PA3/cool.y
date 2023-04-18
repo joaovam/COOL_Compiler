@@ -120,7 +120,7 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 /* 
    Save the root of the abstract syntax tree in a global variable.
 */
-program	: class_list	{ ast_root = program($1); }
+program	: class_list	{ @$ = @1; ast_root = program($1); }
         ;
 
 class_list
@@ -130,6 +130,8 @@ class_list
 	| class_list class	/* several classes */
 		{ $$ = append_Classes($1,single_Classes($2)); 
                   parse_results = $$; }
+  | error ';'
+      { $$ = $$;}
 	;
 
 /* If no parent is specified, the class inherits from the Object class. */
