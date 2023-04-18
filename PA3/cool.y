@@ -155,6 +155,8 @@ OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
 | error ';'
   {$$ = $$;};
 
+
+
 formal_list:
   {$$ = nil_formals();}
 | nonempty_formal_list
@@ -182,7 +184,7 @@ nonempty_expression_list:
   expression 
   {$$ = single_Expressions($1);}
 | nonempty_expression_list ',' expression 
-  {a$$ = ppend_Expressions($1, single_Expressions($3));}
+  {$$ = append_Expressions($1, single_Expressions($3));}
 
 expression_semicolon_list:
 expression
@@ -192,7 +194,6 @@ expression
 {$$ = append_Expressions($1, single_Expressions($3));}
 
 expression: //assignment, function call, while, if, expression blocks
-
  OBJECTID ASSIGN expression
   {$$ = assign($1,$3);}
 | expression '.' OBJECTID '(' expression_list ')'
