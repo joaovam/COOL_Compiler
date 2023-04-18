@@ -79,7 +79,8 @@ extern int cool_yydebug;
     ASSIGN = 280,                  /* ASSIGN  */
     NOT = 281,                     /* NOT  */
     LE = 282,                      /* LE  */
-    ERROR = 283                    /* ERROR  */
+    ERROR = 283,                   /* ERROR  */
+    LET_ = 285                     /* LET_  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -114,6 +115,7 @@ extern int cool_yydebug;
 #define NOT 281
 #define LE 282
 #define ERROR 283
+#define LET_ 285
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -136,7 +138,7 @@ union YYSTYPE
   Expressions expressions;
   char *error_msg;
 
-#line 140 "cool.tab.h"
+#line 142 "cool.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

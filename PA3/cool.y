@@ -83,28 +83,21 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %type <expressions> expression_list nonempty_expression_list
 %type <expressions> expression_semicolon_list
 %type <expression> expression
-/* %type <cases> case_list
+%type <cases> case_list
 %type <case_> case_
-%type <expression> let_list */
+%type <expression> let_list
 
 /* Precedence declarations go here. */
-%left '.'
-%left '@'
-%left '~'
-%left ISVOID
-%left '*'
-%left '/'
-%left '+'
-%left '-'
-%left NOT
-
-%left LET
-
+%left LET_
 %right ASSIGN
-
+%left NOT
 %nonassoc LE '=' '<'
-
-
+%left '+' '-'
+%left '*' '/'
+%left ISVOID
+%left '~'
+%left '@'
+%left '.'
 
 %%
 /* 
@@ -124,7 +117,7 @@ class_list
 
 /* If no parent is specified, the class inherits from the Object class. */
 class	: CLASS TYPEID '{' feature_list '}' ';'
-		{ $$ = class_($2,idtable.add_string("Object"),$4,
+		{ $$ = class_($2, idtable.add_string("Object"),$4,
 			      stringtable.add_string(curr_filename)); }
 	| CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
 		{ $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
@@ -158,7 +151,7 @@ OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
 
 
 formal_list:
-  {$$ = nil_formals();}
+  {$$ = nil_Formals();}
 | nonempty_formal_list
   {}
 
@@ -179,6 +172,27 @@ expression_list:
   {$$ = nil_Expressions();}
 | nonempty_expression_list
   {$$ = Expression()}
+
+let_list:
+    ',' OBJECTID ':' TYPEID let_list
+      { $$ = let($2, $4, no_expr(), $5); }
+    |',' OBJECTID ':' TYPEID IN expression %prec LET_
+      { $$ = let($2, $4, no_expr(), $6); }
+    |',' OBJECTID ':' TYPEID ASSIGN expression let_list
+      { $$ = let($2, $4, $6, $7); }
+    |',' OBJECTID ':' TYPEID ASSIGN expression IN expression %prec LET_
+      { $$ = let($2, $4, $6, $8); }
+    | ',' error let_list
+      { $$ = $$; }
+
+ case_list: 
+    case_
+      { $$ = single_Cases($1); /*printf("Single Case\n");*/ }
+    | case_list case_
+      { $$ = append_Cases($1, single_Cases($2)); /*printf("Multiple Cases\n");*/ }
+
+  case_: OBJECTID ':' TYPEID DARROW expression ';'
+      { $$ = branch($1, $3, $5); /*printf("case: ID:Type => expr\n");*/ }
 
 nonempty_expression_list:
   expression 
@@ -217,7 +231,55 @@ expression: //assignment, function call, while, if, expression blocks
 | error ';' expression_semicolon_list ';'
   {$$ = $$;}
 
+| LET OBJECTID ':' TYPEID IN expression %prec LET_
+  {$$ = let($2, $4, no_expr(), $6);}
 
+| LET OBJECTID ':' TYPEID ASSIGN expression IN expression %prec LET_
+  {$$ = let($2, $4, $6, $8);}
+
+| LET OBJECTID ':' TYPEID let_list
+  {$$ = let($2, $4, no_expr(), $5)}
+
+| LET OBJECTID ':' TYPEID ASSIGN expression let_list
+  {$$ = let($2, $4, $6, $7);}
+
+|LET error let_list
+  {$$ = $$;}
+
+| CASE expression OF case_list ESAC 
+  {$$ = typcase($2, $4);}
+| NEW TYPEID
+  {$$ = new_($2);}
+| ISVOID expression
+  {$$ = isvoid($2);}
+| expression '+' expression
+  {$$ = plus($1, $3);}
+| expression '-' expression
+  {$$ = sub($1, $3);}
+| expression '*' expression
+  {$$ = mul($1, $3);}
+| expression '/' expression
+  {$$ = divide($1, $3);}
+| '~' expression
+  {$$ = neg($2);}
+| expression '<' expression
+  {$$ = lt($1,$3);}
+| expression LE expression
+  {$$ = leq($1, $3);}
+| expression '=' expression
+  {$$ = eq($1, $3);}
+| NOT expression
+  {$$ = comp($2);}
+| '(' expression ')'
+  {$$ = $2;}
+| OBJECTID
+  {$$ = object($1);}
+| INT_CONST
+  {$$ = object($1);}
+| STR_CONST
+  {$$ = object($1);}
+| BOOL_CONST
+  {$$ = object($1);}
 /* end of grammar */
 %%
 
