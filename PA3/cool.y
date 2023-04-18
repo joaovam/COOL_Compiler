@@ -4,12 +4,29 @@
  *
  */
 %{
-#include <iostream.h>
+#include <iostream>
 #include "cool-tree.h"
 #include "stringtab.h"
 #include "utilities.h"
 
 extern char *curr_filename;
+
+/* Locations */
+  #define YYLTYPE int              /* the type of locations */
+  #define cool_yylloc curr_lineno  /* use the curr_lineno from the lexer for the location of tokens */
+    
+  extern int node_lineno;          /* set before constructing a tree node
+  to whatever you want the line number
+  for the tree node to be */
+
+
+  #define YYLLOC_DEFAULT(Current, Rhs, N)         \
+  Current = Rhs[1];                             \
+  node_lineno = Current;
+
+
+  #define SET_NODELOC(Current)  \
+  node_lineno = Current; 
 
 void yyerror(char *s);        /*  defined below; called for each parse error */
 extern int yylex();           /*  the entry point to the lexer  */
@@ -171,7 +188,7 @@ declaration :
 expression_list:
   {$$ = nil_Expressions();}
 | nonempty_expression_list
-  {$$ = Expression()}
+  {}
 
 let_list:
     ',' OBJECTID ':' TYPEID let_list
@@ -238,7 +255,7 @@ expression: //assignment, function call, while, if, expression blocks
   {$$ = let($2, $4, $6, $8);}
 
 | LET OBJECTID ':' TYPEID let_list
-  {$$ = let($2, $4, no_expr(), $5)}
+  {$$ = let($2, $4, no_expr(), $5);}
 
 | LET OBJECTID ':' TYPEID ASSIGN expression let_list
   {$$ = let($2, $4, $6, $7);}
@@ -275,11 +292,11 @@ expression: //assignment, function call, while, if, expression blocks
 | OBJECTID
   {$$ = object($1);}
 | INT_CONST
-  {$$ = object($1);}
+  {$$ = int_const($1);}
 | STR_CONST
-  {$$ = object($1);}
+  {$$ = string_const($1);}
 | BOOL_CONST
-  {$$ = object($1);}
+  {$$ = bool_const($1);}
 /* end of grammar */
 %%
 
