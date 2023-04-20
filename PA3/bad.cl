@@ -7,6 +7,11 @@
  *  generates
  *)
 
+(* repositorios que podem ajudar:
+ * https://github.com/vinceniko/cool-compiler/blob/master/pa3-submission/bad.cl
+ * https://github.com/HoussemNasri/CoolCompiler/tree/master/syntax-analysis/tests
+ * https://github.com/AgamAgarwal/cool-compiler/blob/master/assignments/3/bad.cl)
+
 (* no error *)
 class A {
 };
