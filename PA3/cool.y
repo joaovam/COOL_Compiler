@@ -148,12 +148,20 @@ feature_list:
     {  $$ = nil_Features(); }
 | nonempty_feature_list {}
 
-
+/* Define nonempty_feature_list rules */
 nonempty_feature_list:
     feature {$$ = nil_Features();}
 
 | nonempty_feature_list feature {$$ = append_Features($1, single_Features($2));}
 
+/*
+  Describing the rules of feature: 
+  Feature is:
+   - ID( [formal]* ) : Type {expression};
+   - ID : Type;
+   - ID : Type <- expression;
+   - ERROR;
+*/
 feature:
 OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
   {$$ = method($1, $3, $6, $8);}
@@ -167,31 +175,46 @@ OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
 | error ';'
   {$$ = $$;};
 
-
-
+/*
+  Formal list may be empty, but no empty formal in the list.
+*/
 formal_list:
   {$$ = nil_Formals();}
 | nonempty_formal_list
   {}
 
-
+/*
+  Describe the rules for nonempty_formal_list:
+*/
 nonempty_formal_list:
 declaration
     {$$ = single_Formals($1);}
 | formal_list ',' declaration
     {$$ = append_Formals($1, single_Formals($3));}
 
-
+/*
+  Describe the rule of declaration/formal:
+    - ID : Type
+*/
 declaration :
     OBJECTID ':' TYPEID
     {$$ = formal($1, $3);}
 
-  
+/*
+  Expression list may be empty, but no empty expression in list.
+*/
 expression_list:
   {$$ = nil_Expressions();}
 | nonempty_expression_list
   {}
 
+/*
+  Describe the rules of let_list:
+    - , ID : Type LET_LIST
+    - , ID : Type in expression
+    - , ID : Type <- expression LET_LIST
+    - , ID : Type <- expression in expression
+*/
 let_list:
     ',' OBJECTID ':' TYPEID let_list
       { $$ = let($2, $4, no_expr(), $5); }
@@ -204,101 +227,147 @@ let_list:
     | ',' error let_list
       { $$ = $$; }
 
- case_list: 
-    case_
-      { $$ = single_Cases($1); /*printf("Single Case\n");*/ }
-    | case_list case_
-      { $$ = append_Cases($1, single_Cases($2)); /*printf("Multiple Cases\n");*/ }
+/*
+  Describe the rules for case_list:
+*/
+case_list: 
+  case_
+    { $$ = single_Cases($1); }
+  | case_list case_
+    { $$ = append_Cases($1, single_Cases($2)); }
 
-  case_: OBJECTID ':' TYPEID DARROW expression ';'
-      { $$ = branch($1, $3, $5); /*printf("case: ID:Type => expr\n");*/ }
+/*
+  Define the rule of case:
+    - ID : Type => expression;
+*/
+case_: 
+  OBJECTID ':' TYPEID DARROW expression ';'
+    { $$ = branch($1, $3, $5); }
 
+/*
+  Describe the rules for a non-empty expression list:
+  - a single expression , 
+  - a list of expressions (expr1,expr2,expr3,...)
+*/
 nonempty_expression_list:
   expression 
-  {$$ = single_Expressions($1);}
-| nonempty_expression_list ',' expression 
-  {$$ = append_Expressions($1, single_Expressions($3));}
+    {$$ = single_Expressions($1);}
+  | nonempty_expression_list ',' expression 
+    {$$ = append_Expressions($1, single_Expressions($3));}
 
+/*
+  Describe the rules for a non-empty expression list:
+  - a single expression ; 
+  - a list of expressions (expr1;expr2;expr3;...)
+*/
 expression_semicolon_list:
-expression
- {$$ = single_Expressions($1);}
+  expression
+    {$$ = single_Expressions($1);}
+  | expression_semicolon_list ';' expression
+    {$$ = append_Expressions($1, single_Expressions($3));}
 
-| expression_semicolon_list ';' expression
-{$$ = append_Expressions($1, single_Expressions($3));}
-
+/*
+  Define the rules of expression:
+    - ID <- expression
+    - expression.ID( expression_list )
+    - while expression loop expression pool
+    - if expression then expression else expression fi
+    - { expression; expression; expression; ...   
+    - let ID:Type in expression
+    - let ID:Type <- expression in expression
+    - let ID:Type let_list
+    - let ID:Type <- expression let_list
+    - case expression of case_list esac
+    - new Type
+    - ISVOID expression
+    - expression + expression
+    - expression - expression
+    - expression * expression
+    - expression / expression 
+    - ~ expression
+    - expression < expression
+    - expression <= expression 
+    - expression = expression
+    - NOT expression
+    - (expression)
+    - ID
+    - INT
+    - STR
+    - BOOL
+*/
 expression: //assignment, function call, while, if, expression blocks
- OBJECTID ASSIGN expression
-  {$$ = assign($1,$3);}
-| expression '.' OBJECTID '(' expression_list ')'
-  {$$ = dispatch($1, $3, $5);}
+  OBJECTID ASSIGN expression
+    {$$ = assign($1,$3);}
+  | expression '.' OBJECTID '(' expression_list ')'
+    {$$ = dispatch($1, $3, $5);}
 
-| WHILE expression LOOP expression POOL
-  {$$ = loop($2, $4);}
+  | WHILE expression LOOP expression POOL
+    {$$ = loop($2, $4);}
 
-| IF expression THEN expression ELSE expression FI
-  {$$ = cond($2, $4, $6);}
+  | IF expression THEN expression ELSE expression FI
+    {$$ = cond($2, $4, $6);}
 
-| '{' expression_semicolon_list ';'
-  {$$ = block($2);}
+  | '{' expression_semicolon_list ';'
+    {$$ = block($2);}
 
-| '{' expression_semicolon_list ';' error ';'
-  {$$ = $$;}
+  | '{' expression_semicolon_list ';' error ';' // error at the end of the expression list
+    {$$ = $$;}
 
-| '{' expression_semicolon_list ';' error ';' expression_semicolon_list ';'
-  {$$ = $$;}
+  | '{' expression_semicolon_list ';' error ';' expression_semicolon_list ';' // error in the middle of the expression list
+    {$$ = $$;}
 
-| error ';' expression_semicolon_list ';'
-  {$$ = $$;}
+  | error ';' expression_semicolon_list ';' // error at the start of the expression list
+    {$$ = $$;}
 
-| LET OBJECTID ':' TYPEID IN expression %prec LET_
-  {$$ = let($2, $4, no_expr(), $6);}
+  | LET OBJECTID ':' TYPEID IN expression %prec LET_
+    {$$ = let($2, $4, no_expr(), $6);}
 
-| LET OBJECTID ':' TYPEID ASSIGN expression IN expression %prec LET_
-  {$$ = let($2, $4, $6, $8);}
+  | LET OBJECTID ':' TYPEID ASSIGN expression IN expression %prec LET_
+    {$$ = let($2, $4, $6, $8);}
 
-| LET OBJECTID ':' TYPEID let_list
-  {$$ = let($2, $4, no_expr(), $5);}
+  | LET OBJECTID ':' TYPEID let_list
+    {$$ = let($2, $4, no_expr(), $5);}
 
-| LET OBJECTID ':' TYPEID ASSIGN expression let_list
-  {$$ = let($2, $4, $6, $7);}
+  | LET OBJECTID ':' TYPEID ASSIGN expression let_list
+    {$$ = let($2, $4, $6, $7);}
 
-|LET error let_list
-  {$$ = $$;}
+  |LET error let_list
+    {$$ = $$;}
 
-| CASE expression OF case_list ESAC 
-  {$$ = typcase($2, $4);}
-| NEW TYPEID
-  {$$ = new_($2);}
-| ISVOID expression
-  {$$ = isvoid($2);}
-| expression '+' expression
-  {$$ = plus($1, $3);}
-| expression '-' expression
-  {$$ = sub($1, $3);}
-| expression '*' expression
-  {$$ = mul($1, $3);}
-| expression '/' expression
-  {$$ = divide($1, $3);}
-| '~' expression
-  {$$ = neg($2);}
-| expression '<' expression
-  {$$ = lt($1,$3);}
-| expression LE expression
-  {$$ = leq($1, $3);}
-| expression '=' expression
-  {$$ = eq($1, $3);}
-| NOT expression
-  {$$ = comp($2);}
-| '(' expression ')'
-  {$$ = $2;}
-| OBJECTID
-  {$$ = object($1);}
-| INT_CONST
-  {$$ = int_const($1);}
-| STR_CONST
-  {$$ = string_const($1);}
-| BOOL_CONST
-  {$$ = bool_const($1);}
+  | CASE expression OF case_list ESAC 
+    {$$ = typcase($2, $4);}
+  | NEW TYPEID
+    {$$ = new_($2);}
+  | ISVOID expression
+    {$$ = isvoid($2);}
+  | expression '+' expression
+    {$$ = plus($1, $3);}
+  | expression '-' expression
+    {$$ = sub($1, $3);}
+  | expression '*' expression
+    {$$ = mul($1, $3);}
+  | expression '/' expression
+    {$$ = divide($1, $3);}
+  | '~' expression
+    {$$ = neg($2);}
+  | expression '<' expression
+    {$$ = lt($1,$3);}
+  | expression LE expression
+    {$$ = leq($1, $3);}
+  | expression '=' expression
+    {$$ = eq($1, $3);}
+  | NOT expression
+    {$$ = comp($2);}
+  | '(' expression ')'
+    {$$ = $2;}
+  | OBJECTID
+    {$$ = object($1);}
+  | INT_CONST
+    {$$ = int_const($1);}
+  | STR_CONST
+    {$$ = string_const($1);}
+  | BOOL_CONST
+    {$$ = bool_const($1);}
 /* end of grammar */
 %%
 
