@@ -142,3 +142,4 @@ Instructions
 
 Write-up for PA3
 ----------------
+	Para a execução do parser decidimos modularizar a gramática a partir de cada construção pré-definida da linguagem como o instruído. Utilizamos o manual para a definição das ordens de precedência e das regras para as construções. Criamos cada regra necessária levando em consideração a situação onde aquela construção não existe, portanto sendo vazia ou em branco.
