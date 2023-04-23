@@ -7,62 +7,57 @@
  *  generates
  *)
 
-(* repositorios que podem ajudar:
- * https://github.com/vinceniko/cool-compiler/blob/master/pa3-submission/bad.cl
- * https://github.com/HoussemNasri/CoolCompiler/tree/master/syntax-analysis/tests
- * https://github.com/AgamAgarwal/cool-compiler/blob/master/assignments/3/bad.cl)
-
-(* no error *)
+(* sem erro *)
 class A {
 };
 
-(* error:  b is not a type identifier *)
+(* erro: b não é um identificador de tipo *)
 Class b inherits A {
 };
 
-(* error:  a is not a type identifier *)
+(* erro: a não é um identificador de tipo *)
 Class C inherits a {
 };
 
-(* error:  keyword inherits is misspelled *)
+(* erro: palavra-chave inherits escrita errada *)
 Class D inherts A {
 };
 
-(* error:  closing brace is missing *)
+(* erro: faltando chave de fechamento *)
 Class E inherits A {
 ;
 
---testando método vazio
+-- testando método vazio
 Class F inherits A {
-    (*error: missing ':'*)
+    (* erro: faltando : *)
     empty_feature()  Int {
         
     };
 };
 
 Class G inherits A {
-    (*error: int is not a type identifier*)
+    (* erro: int não é um identificador de tipo *)
     empty_feature() : int {
         
     };
 };
 
 Class H inherits A {
-    (*error: Empty_feature() is not a method identifier*)
+    (* erro: Empty_feature() não é um identificador de método *)
     Empty_feature() : Int {
         
     };
 };
 
 Class I inherits A {
-    (*error: empty_feature is not a method*)
+    (* erro: empty_feature não é um método *)
     empty_feature : Int {
         
     };
 };
 
 Class J inherits A {
-    (*error: type of method return is missing*)
+    (* erro: tipo do return está faltando *)
     empty_feature() : {
         
     };
@@ -70,7 +65,7 @@ Class J inherits A {
 
 -- testando classe com um método
 Class K {
-    (*error: a is not a Integer*)
+    (* erro: a não é inteiro *)
     feature() : Int {
         a
     };
@@ -79,149 +74,40 @@ Class K {
 -- testando parâmetros formais, vários métodos em uma classe e inicialização de atributos
 Class L inherits A {
     c : Int;
-    d : Int < 0; (*error: attribution should be with <-*)
+    d : Int < 0; (* erro: atribuição deveria ser com <- *)
 
     no_formals() : Int {
-        c <- 1
+        <- 1 (* erro: nenhuma variável para receber 1 *)
     };
 
-    one_formal(one : Arg1) : Int {
-        1
-    };
-
-    two_formals(one : Arg1, two : Arg2) : Int {
-        1
-    };
-};
-
-Class M inherits A {
-    c : Int;
-    d : Int <- 0; 
-
-    no_formals() : Int {
-        (*error: no variable to recieve the value 1*)
-         <- 1
-    };
-
-    one_formal(one : Arg1) : Int {
-        1
-    };
-
-    two_formals(one : Arg1, two : Arg2) : Int {
-        1
-    };
-};
-
-Class N inherits A {
-    c : Int;
-    d : Int <- 0; 
-
-    no_formals() : Int {
-        c <- 1
-    };
-
-    (*error: type of parameter one is missing*)
+    (* erro: faltando o tipo do parâmetro "one" *)
     one_formal(one) : Int {
         1
     };
 
-    two_formals(one : Arg1, two : Arg2) : Int {
-        1
-    };
-};
-
-Class O inherits A {
-    c : Int;
-    d : Int <- 0; 
-
-    no_formals() : Int {
-        c <- 1
-    };
-
-    one_formal(one : Arg1) : Int {
-        1
-    };
-
-    (*error: missing , between arguments*)
+    (* erro: faltando , entre os argumentos *)
     two_formals(one : Arg1 two : Arg2) : Int {
         1
     };
 };
 
 -- testando expressões aritméticas
-Class P inherits A {
-    (*error: an operator is missing*)
+Class M inherits A {
+    (* erro: faltando operador *)
     c : Int <- 1  2;
 
-    mul_add() : Int {
-        c <- 1 + 1 * 2
-    };
-
-    add_mul() : Int {
-        c <- (1 + 1) * 2 * (3 + (4 + 4))
-    };
-
-    add_sub() : Int {
-        c <- 1 + 1 - 2
-    };
-
-    mul_div(): Int {
-        c <- 1 * 2 / 2
-    };
-};
-
-Class Q inherits A {
-    (*error: invalid operator -*)
-    c : Int <- -1 * 2;
+    (* erro: operador inválido - *)
+    d : Int <- -1 * 2;
 
     mul_add() : Int {
         c <- 1 + 1 * 2
     };
 
     add_mul() : Int {
-        c <- (1 + 1) * 2 * (3 + (4 + 4))
-    };
-
-    add_sub() : Int {
-        c <- 1 + 1 - 2
-    };
-
-    mul_div(): Int {
-        c <- 1 * 2 / 2
-    };
-};
-
-Class R inherits A {
-    c : Int <- 1 * 2;
-
-    mul_add() : Int {
-        c <- 1 + 1 * 2
-    };
-
-    add_mul() : Int {
-        (*error: ) is missing*)
+        (* erro: faltando ) *)
         c <- (1 + 1 * 2 * (3 + (4 + 4))
-    };
-
-    add_sub() : Int {
-        c <- 1 + 1 - 2
-    };
-
-    mul_div(): Int {
-        c <- 1 * 2 / 2
-    };
-};
-
-Class S inherits A {
-    c : Int <- 1 * 2;
-
-    mul_add() : Int {
-        c <- 1 + 1 * 2
-    };
-
-    add_mul() : Int {
-        (*error: ( is missing*)
-        c <- 1 + 1) * 2 * (3 + (4 + 4))
+        (* erro: faltando ( *)
+        d <- 1 + 1) * 2 * (3 + (4 + 4))
     };
 
     add_sub() : Int {
@@ -234,215 +120,64 @@ Class S inherits A {
 };
 
 -- testando expressões condicionais e comandos if else, while e case
-Class T inherits A {
+Class N inherits A {
     c : Int <- 1;
 
     conditional_if_expression() : Int {
-        (*error: invalid operator >=*)
+        (* erro: operador inválido >= *)
         if (c >= 1) then 0 else
-        if (c < 2) then 1 else
-        if (c = 2) then 2 else
-        if (not(c = 1)) then 3 else
-        fi fi fi fi
+
+        (* erro: palavra-chave then está faltando *)
+        if (c < 2) 1 else
+
+        (* erro: palavra-chave if está faltando *)
+        (c = 2) then 2 else
+
+        (* erro: no não é uma palavra-chave *)
+        if (no(c = 1)) 3 else false 
+
+        fi fi fi (* erro: palavra-chave fi está faltando *)
     }
 
     while_expression() : Int {
-		while c < 5 loop {
-			    c <- c + 1;
-		} pool
-    }
+        {
+            (* erro: palavra-chave while está faltando *)
+            (c < 5) loop 
+                {
+                        c <- c + 1;
+                }
+            pool;
+
+            (* erro: palavra-chave loop está faltando *)
+            while (c < 5) 
+                {
+                        c <- c + 1;
+                }
+            (* erro: palavra-chave pool está faltando *)
+
+            0;
+        }
+    };
 
     case_expression() : Int {
-        -- FALTANDO!!!
-    }
-};
-
-Class U inherits A {
-    c : Int <- 1;
-
-    conditional_if_expression() : Int {
-        (*error: keyword if is missing*)
-         (c >= 1) then 0 else
-        if (c < 2) then 1 else
-        if (c = 2) then 2 else
-        if (not(c = 1)) then 3 else
-        fi fi fi fi
-    }
-
-    while_expression() : Int {
-		while c < 5 loop {
-			    c <- c + 1;
-		} pool
-    }
-
-    case_expression() : Int {
-        -- FALTANDO!!!
-    }
-};
-
-Class V inherits A {
-    c : Int <- 1;
-
-    conditional_if_expression() : Int {
-        (*error: keyword then is missing*)
-        if (c >= 1)  0 else
-        if (c < 2) then 1 else
-        if (c = 2) then 2 else
-        if (not(c = 1)) then 3 else
-        fi fi fi fi
-    }
-
-    while_expression() : Int {
-		while c < 5 loop {
-			    c <- c + 1;
-		} pool
-    }
-
-    case_expression() : Int {
-        -- FALTANDO!!!
-    }
-};
-
-Class V inherits A {
-    c : Int <- 1;
-
-    conditional_if_expression() : Int {
-        if (c >= 1) then 0 else
-        if (c < 2) then 1 else
-        if (c = 2) then 2 else
-        if (not(c = 1)) then 3 else
-        fi fi fi (*error: keyword fi is missing*)
-    }
-
-    while_expression() : Int {
-		while c < 5 loop {
-			    c <- c + 1;
-		} pool
-    }
-
-    case_expression() : Int {
-        -- FALTANDO!!!
-    }
-};
-
-Class W inherits A {
-    c : Int <- 1;
-
-    conditional_if_expression() : Int {
-        if (c >= 1) then 0 else
-        if (c < 2) then 1 else
-        if (c = 2) then 2 else
-        if (no(c = 1)) then 3 else (*error: no is not a keyword*)
-        fi fi fi fi
-    }
-
-    while_expression() : Int {
-		while c < 5 loop {
-			    c <- c + 1;
-		} pool
-    }
-
-    case_expression() : Int {
-        -- FALTANDO!!!
-    }
-};
-
-Class X inherits A {
-    c : Int <- 1;
-
-    conditional_if_expression() : Int {
-        if (c >= 1) then 0 else
-        if (c < 2) then 1 else
-        if (c = 2) then 2 else
-        if (not(c = 1)) then 3 else 
-        fi fi fi fi
-    }
-
-    while_expression() : Int {
-		(*error: keyword while is missing*)
-      c < 5 loop {
-			    c <- c + 1;
-		} pool
-    }
-
-    case_expression() : Int {
-        -- FALTANDO!!!
-    }
-};
-
-Class Y inherits A {
-    c : Int <- 1;
-
-    conditional_if_expression() : Int {
-        if (c >= 1) then 0 else
-        if (c < 2) then 1 else
-        if (c = 2) then 2 else
-        if (not(c = 1)) then 3 else 
-        fi fi fi fi
-    }
-
-    while_expression() : Int {
-		(*error: keyword loop is missing*)
-    while c < 5  {
-			    c <- c + 1;
-		} pool
-    }
-
-    case_expression() : Int {
-        -- FALTANDO!!!
-    }
-};
-
-Class Z inherits A {
-    c : Int <- 1;
-
-    conditional_if_expression() : Int {
-        if (c >= 1) then 0 else
-        if (c < 2) then 1 else
-        if (c = 2) then 2 else
-        if (not(c = 1)) then 3 else 
-        fi fi fi fi
-    }
-
-    while_expression() : Int {
-		while c < 5 loop {
-			    c <- c + 1;
-		} (*error: keyword pool is missing*)
-    }
-
-    case_expression() : Int {
+        0
         -- FALTANDO!!!
     }
 };
 
 -- testando bloco de expressão
-Class AA inherits A {
+Class O inherits A {
     
     block() : Int {
-        
+        (* erro: faltando { *)
             c <- 0;
             c <- 1;
-        } (*error: missing symbol {*)
-    };
-};
-
-Class AB inherits A {
-    
-    block() : Int {
-        {
-            c <- 0;
-            c <- 1;
-        (*error: missing symbol }*)
+        (* erro: faltando } *)
     };
 };
 
 -- testando expressões let
-class AC inherits A {
-    a : Int <- b : Int <- 0, c : Int <- 1 in 2; (*error: keyword let is missing*)
-    d : Int <- let e : Int, f : Int <- 1 in 2;
-};
-
-class AD inherits A {
-    a : Int <- let b : Int <- 0, c : Int <- 1  2; (*error: keyword in is missing*)
-    d : Int <- let e : Int, f : Int <- 1 in 2;
+class P inherits A {
+    a : Int <- b : Int <- 0, c : Int <- 1 in 2; (* erro: palavra-chave let está faltando *)
+    d : Int <- let e : Int, f : Int <- 1 2; (* erro: palavra-chave in está faltando *)
 };
