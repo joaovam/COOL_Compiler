@@ -108,7 +108,7 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %left LET_
 %right ASSIGN
 %left NOT
-%nonassoc LE '=' '<'
+%nonassoc LE '<' '='
 %left '+' '-'
 %left '*' '/'
 %left ISVOID
@@ -150,7 +150,7 @@ feature_list:
 
 /* Define nonempty_feature_list rules */
 nonempty_feature_list:
-    feature {$$ = nil_Features();}
+    feature {$$ = single_Features($1);}
 
 | nonempty_feature_list feature {$$ = append_Features($1, single_Features($2));}
 
@@ -303,11 +303,17 @@ expression: //assignment, function call, while, if, expression blocks
 
   | WHILE expression LOOP expression POOL
     {$$ = loop($2, $4);}
+  
+  | expression '@' TYPEID '.' OBJECTID '(' expression_list ')'
+      { $$ = static_dispatch($1, $3, $5, $7);}
+    
+  | OBJECTID '(' expression_list ')'
+      { $$ = dispatch(object(idtable.add_string("self")), $1, $3);}
 
   | IF expression THEN expression ELSE expression FI
     {$$ = cond($2, $4, $6);}
 
-  | '{' expression_semicolon_list ';'
+  | '{' expression_semicolon_list ';' '}'
     {$$ = block($2);}
 
   | '{' expression_semicolon_list ';' error ';' // error at the end of the expression list

@@ -5,6 +5,7 @@ class A {
 -- testando método vazio
 Class BB__ inherits A {
     empty_feature() : Int {
+        0
     };
 };
 
@@ -62,19 +63,25 @@ Class F inherits A {
         if (c <= 1) then 0 else
         if (c < 2) then 1 else
         if (c = 2) then 2 else
-        if (not(c = 1)) then 3 else
+        if (not(c = 1)) then 3 else false
         fi fi fi fi
-    }
+    };
 
     while_expression() : Int {
-		while c < 5 loop {
-			    c <- c + 1;
-		} pool
-    }
+        {
+            while (c < 5) loop 
+                {
+                        c <- c + 1;
+                }
+            pool;
+            0;
+        }
+    };
 
     case_expression() : Int {
+        0
         -- FALTANDO!!!
-    }
+    };
 };
 
 -- testando bloco de expressão
