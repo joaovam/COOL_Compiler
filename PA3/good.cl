@@ -5,6 +5,7 @@ class A {
 -- testando método vazio
 Class BB__ inherits A {
     empty_feature() : Int {
+        0
     };
 };
 
@@ -80,7 +81,7 @@ Class F inherits A {
     case_expression() : Int {
         0
         -- FALTANDO!!!
-    }
+    };
 };
 
 -- testando bloco de expressão
