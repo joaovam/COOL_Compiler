@@ -143,3 +143,5 @@ Instructions
 Write-up for PA3
 ----------------
 	Para a execução do parser decidimos modularizar a gramática a partir de cada construção pré-definida da linguagem como o instruído. Utilizamos o manual para a definição das ordens de precedência e das regras para as construções. Criamos cada regra necessária levando em consideração a situação onde aquela construção não existe, portanto sendo vazia ou em branco.
+
+	Os testes foram realizados nos arquivos good.cl e bad.cl. O arquivo good.cl realiza testes de toda e qualquer "construção legal" da gramática. Para isso, foram criadas algumas classes com diferentes casos de testes, os quais testam os usos válidos de cada regra elaborada no parser. Já o arquivo bad.cl realiza testes do maior número possível de erros de análise em um único arquivo. Dessa forma, cada classe no bad.cl é uma das classes do good.cl com algum erro de sintaxe em algum lugar do código, como alteração de escrita ou falta de alguma palavra-chave. Portando, foi possível testar casos válidos e inválidos de construções como métodos, parâmetros, expressões condicionais, entre outras.
