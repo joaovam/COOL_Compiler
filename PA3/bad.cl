@@ -160,9 +160,23 @@ Class N inherits A {
     };
 
     case_expression() : Int {
+        (* erro: palavra-chave of está faltando *)
+        case (c = 1)
+            c : Int => 1;
+            d : Int => 2;
+        esac
+
+        (* erro: palavra-chave case está faltando *)
+        case (c = 1)
+            (* erro: faltando tipo*)
+            a : => 1
+            (* erro: faltando > *)
+            c : Int = 1;
+            (* erro: faltando : *)
+            d Int => 2;
+        esac
         0
-        -- FALTANDO!!!
-    }
+    };
 };
 
 -- testando bloco de expressão

@@ -79,8 +79,11 @@ Class F inherits A {
     };
 
     case_expression() : Int {
+        case (c = 1) of
+            c : Int => 1;
+            d : Int => 2;
+        esac
         0
-        -- FALTANDO!!!
     };
 };
 
