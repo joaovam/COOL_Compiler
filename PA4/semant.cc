@@ -1,5 +1,4 @@
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -85,7 +84,7 @@ static void initialize_constants(void)
 
 ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) {
 
-    /* Fill this in */
+    install_basic_classes();
 
 }
 
@@ -190,6 +189,13 @@ void ClassTable::install_basic_classes() {
 	       filename);
 }
 
+bool ClassTable::install_custom_classes(Classes classes){
+    for(int i = classes->first(); classes->more(i); i = classes->next(i)){
+        Class_ current = classes->nht(i);
+        current->
+    }
+}
+
 ////////////////////////////////////////////////////////////////////
 //
 // semant_error is an overloaded function for reporting errors
@@ -245,6 +251,8 @@ void program_class::semant()
     ClassTable *classtable = new ClassTable(classes);
 
     /* some semantic analysis code may go here */
+    install_custom_classes;
+    //criar grafo de herança, ver se o mesmo é acíclico, ver se todas as classes foram definidas
 
     if (classtable->errors()) {
 	cerr << "Compilation halted due to static semantic errors." << endl;

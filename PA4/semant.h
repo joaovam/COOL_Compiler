@@ -19,8 +19,21 @@ typedef ClassTable *ClassTableP;
 // you like: it is only here to provide a container for the supplied
 // methods.
 
+class GraphNode(){
+  private:
+  int name;
+  GraphNode* parent;
+  int parentName;
+
+  public:
+  GraphNode(int name, int parent, GraphNode* parentNode=NULL): name(name),parent(parent){}
+}
+
 class ClassTable {
 private:
+
+  std::map<Symbol, std::vector<Symbol>> InheritanceTree;
+
   int semant_errors;
   void install_basic_classes();
   ostream& error_stream;
@@ -32,6 +45,10 @@ public:
   ostream& semant_error(Class_ c);
   ostream& semant_error(Symbol filename, tree_node *t);
 };
+
+class InheritanceTree{
+
+}
 
 
 #endif
