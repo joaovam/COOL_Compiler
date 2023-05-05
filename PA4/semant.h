@@ -32,23 +32,24 @@ class GraphNode(){
 class ClassTable {
 private:
 
-  std::map<Symbol, std::vector<Symbol>> InheritanceTree;
+  
+  std::map<Symbol, std::vector<Symbol>> inheritance_graph;
 
   int semant_errors;
   void install_basic_classes();
   ostream& error_stream;
 
 public:
+
+  std::map<Symbol, Class_> class_index;
+  std::map<Symbol, Symbol> parent_index;
+
   ClassTable(Classes);
   int errors() { return semant_errors; }
   ostream& semant_error();
   ostream& semant_error(Class_ c);
   ostream& semant_error(Symbol filename, tree_node *t);
 };
-
-class InheritanceTree{
-
-}
 
 
 #endif

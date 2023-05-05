@@ -187,12 +187,91 @@ void ClassTable::install_basic_classes() {
 						      Str, 
 						      no_expr()))),
 	       filename);
+
+    this->class_index[Object] = Object_class;
+    this->class_index[IO] = IO_class;
+    this->class_index[Int] = Int_class;
+    this->class_index[Bool] = Bool_class;
+    this->class_index[Str] = Str_class;
 }
 
 bool ClassTable::install_custom_classes(Classes classes){
     for(int i = classes->first(); classes->more(i); i = classes->next(i)){
         Class_ current = classes->nht(i);
-        current->
+        Symbol class_name = current->get_name();
+        if(class_name == Int || 
+        class_name == Bool ||
+        class_name == Str ||
+        class_name == SELF_TYPE ||
+        class_name == Object){
+
+            semant_error(current) << "Redefinition of " << class_name << " is not allowed. \n";
+            return false;
+
+        } else if(this->class_index[class_name] == class_index.end()){
+
+            class_index[class_name] = current;
+            return true;
+        }else{
+            semant_error(current) << "Class " << class_name <<" is already defined. \n";
+            return false;
+        }
+    }
+
+}
+
+bool ClassTable::build_inheritance_graph(){//builds inheritance graph
+
+    for (auto const& class_map : this->class_index){
+        Symbol name = class_map.first();//first postion of map;
+
+
+        if(name != Object){//class object has no antecessor
+
+
+            Class_ definition = class_map.second();
+
+            Symbol parent_name = definition->get_parent_name();
+
+            if(class_index[parent_name] ==class_index.end()){
+                semant_error(definition) << "Class " << name << " inherits from undefined class " << parent_name << ".\n"; 
+                return false;
+
+            } else if(parent_name == Int || 
+                parent_name == Bool ||
+                parent_name == Str ||
+                parent_name == SELF_TYPE){
+                
+                semant_error(definition) << "Class " << name <<" cannot inherit from primitive class " << parent_name << ".\n";
+                return false;
+            }
+
+            if(this->inheritance_graph[parent_name] == this->inheritance_graph.end()){
+                this->inheritance_graph[parent_name] = new std::vector<Symbol>();
+            }
+
+            this->inheritance_graph[parent_name].push_back(name);
+
+        }
+        return true;
+    }
+}
+
+
+
+bool ClassTable::search_for_cycle_in_inheritance_graph(){
+
+}
+
+bool ClassTable::inheritance_graph_dfs(Symbol symbol){
+    std::stack<Symbol> stack;
+    stack.push(symbol);
+    
+    while(!stack.empty()){
+
+        Symbol current = stack.push();
+
+        for(auto const& x : this->inheritance_graph[stack])
     }
 }
 
