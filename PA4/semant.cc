@@ -197,7 +197,7 @@ void ClassTable::install_basic_classes() {
 
 bool ClassTable::install_custom_classes(Classes classes){
     for(int i = classes->first(); classes->more(i); i = classes->next(i)){
-        Class_ current = classes->nht(i);
+        Class_ current = classes->nth(i);
         Symbol class_name = current->get_name();
         if(class_name == Int || 
         class_name == Bool ||
@@ -208,7 +208,7 @@ bool ClassTable::install_custom_classes(Classes classes){
             semant_error(current) << "Redefinition of " << class_name << " is not allowed. \n";
             return false;
 
-        } else if(this->class_index[class_name] == class_index.end()){
+        } else if(this->class_index.find(class_name) == class_index.end()){
 
             class_index[class_name] = current;
             return true;
@@ -223,17 +223,17 @@ bool ClassTable::install_custom_classes(Classes classes){
 bool ClassTable::build_inheritance_graph(){//builds inheritance graph
 
     for (auto const& class_map : this->class_index){
-        Symbol name = class_map.first();//first postion of map;
+        Symbol name = class_map.first;//first postion of map;
 
 
         if(name != Object){//class object has no antecessor
 
 
-            Class_ definition = class_map.second();
+            Class_ definition = class_map.second;
 
             Symbol parent_name = definition->get_parent_name();
 
-            if(class_index[parent_name] ==class_index.end()){
+            if(this->class_index.find(parent_name) ==this->class_index.end()){
                 semant_error(definition) << "Class " << name << " inherits from undefined class " << parent_name << ".\n"; 
                 return false;
 
@@ -246,8 +246,8 @@ bool ClassTable::build_inheritance_graph(){//builds inheritance graph
                 return false;
             }
 
-            if(this->inheritance_graph[parent_name] == this->inheritance_graph.end()){
-                this->inheritance_graph[parent_name] = new std::vector<Symbol>();
+            if(this->inheritance_graph.find(parent_name) == this->inheritance_graph.end()){
+                this->inheritance_graph[parent_name] = std::vector<Symbol>();
             }
 
             this->inheritance_graph[parent_name].push_back(name);
@@ -257,22 +257,40 @@ bool ClassTable::build_inheritance_graph(){//builds inheritance graph
     }
 }
 
-
+enum NodeColor {white, gray, black};
+std::map<Symbol, NodeColor> color;
 
 bool ClassTable::search_for_cycle_in_inheritance_graph(){
+    color.clear();
+    for(auto const& c : this->class_index){
+        color[c.first] = white;
+    }
 
+    for(auto const& c : this->class_index){
+        if(color[c.first] == white)
+            if(!this->inheritance_graph_dfs(c.first))
+                return false;
+    }
+    return true;
 }
 
 bool ClassTable::inheritance_graph_dfs(Symbol symbol){
-    std::stack<Symbol> stack;
-    stack.push(symbol);
-    
-    while(!stack.empty()){
 
-        Symbol current = stack.push();
+    color[symbol] = gray;//visiting the vertex
 
-        for(auto const& x : this->inheritance_graph[stack])
+    for (auto const& current: inheritance_graph[symbol]){
+        if(color[current] == gray){
+            semant_error() << "There is a circular inheritance with class " << current << " and " << symbol <<".\n";
+            return false;
+        }
+        
+        if(!inheritance_graph_dfs(current)){
+            return false;
+        }
+
     }
+    return true;
+    
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -330,7 +348,7 @@ void program_class::semant()
     ClassTable *classtable = new ClassTable(classes);
 
     /* some semantic analysis code may go here */
-    install_custom_classes;
+    classtable->install_custom_classes(classes);
     //criar grafo de herança, ver se o mesmo é acíclico, ver se todas as classes foram definidas
 
     if (classtable->errors()) {
