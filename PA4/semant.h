@@ -5,6 +5,7 @@
 #include <iostream>  
 #include <map>
 #include <vector>
+#include <set>
 #include "cool-tree.h"
 #include "stringtab.h"
 #include "symtab.h"
@@ -42,12 +43,26 @@ public:
   bool build_inheritance_graph();
   bool search_for_cycle_in_inheritance_graph();
   bool inheritance_graph_dfs(Symbol symbol);
+  Symbol least_upper_bound(Symbol x, Symbol y);
+  bool check_if_classTable_is_ok();
 
   ostream& semant_error();
   ostream& semant_error(Class_ c);
   ostream& semant_error(Symbol filename, tree_node *t);
 };
 
+
+ClassTable *classtable;
+
+//use for type check
+Symbol current_class_name;
+Class_ current_class_definition;
+std::map<Symbol, method_class*> current_class_methods;
+std::map<Symbol, attr_class*> current_class_attrs;
+
+//contains all the methods and attributes index by the name of the Class
+std::map<Symbol, std::map<Symbol, method_class*>> class_methods;
+std::map<Symbol, std::map<Symbol, attr_class*>> class_attrs;
 
 #endif
 

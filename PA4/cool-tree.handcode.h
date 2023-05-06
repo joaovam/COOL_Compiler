@@ -71,7 +71,24 @@ void dump_with_types(ostream&,int);
 
 
 #define Feature_EXTRAS                                        \
+virtual bool is_method() = 0; \
+	virtual bool is_attr() = 0;   \
 virtual void dump_with_types(ostream&,int) = 0; 
+
+#define method_EXTRAS                                \
+	bool is_method() { return true; }                \
+	bool is_attr() { return false; }                 \
+	Symbol get_name() { return name; }               \
+	Formals get_formals() { return formals; }        \
+	Symbol get_return_type() { return return_type; } \
+	Expression get_body_expr() { return expr; }
+
+#define attr_EXTRAS                         \
+	bool is_method() { return false; }      \
+	bool is_attr() { return true; }         \
+	Symbol get_name() { return name; }      \
+	Symbol get_type() { return type_decl; } \
+	Expression get_init_expr() { return init; }
 
 
 #define Feature_SHARED_EXTRAS                                       \

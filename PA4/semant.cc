@@ -293,6 +293,70 @@ bool ClassTable::inheritance_graph_dfs(Symbol symbol){
     
 }
 
+Symbol ClassTable::least_upper_bound(Symbol x, Symbol y){//returns the least commom ancestor from x and y
+    std::set<Symbol> ancestors;
+
+    Symbol current = x;
+
+    while(current != Object){
+        ancestors.insert(current);
+        current = this->parent_index[current];
+
+    }
+
+    current = y;
+    while(current != Object){
+        if(ancestors.find(current)!= ancestors.end()){
+            return current;
+        }
+        current = this->parent_index[current];
+    }
+    return Object;
+}
+
+bool ClassTable::check_if_classTable_is_ok(){
+    if(!this->search_for_cycle_in_inheritance_graph()){
+        return false;
+    }
+
+    if(this->class_index.find(Main) == this->class_index.end()){
+            semant_error() << "No definition of Main found. \n";
+            return false;
+    }
+    return true;
+}
+
+
+std::map<Symbol, method_class*> retrieve_methods_from_class(Class_ class_definition){
+    std::map<Symbol, method_class*> methods;
+
+    Symbol name = class_definition->get_name();
+    Features features = class_definition->get_features();
+
+    for(int i = features->first(); features->more(i); i = features->next(i)){
+        Feature f = features->nth(i);
+        if(f->is_method()){
+            method_class * method = static_cast<method_class*>(f);
+            Symbol method_name = method->get_name();
+
+            if(methods.find(method_name) != methods.end()){
+                classtable->semant_error(class_definition) << "Method " << method_name << "already defined previously\n";
+            }else{
+                methods[method_name] = method;
+            }
+        }
+    }
+    return methods;
+}
+
+method_class* get_class_method(Symbol class_name, Symbol meth_name){
+    std::map<Symbol, method_class*> methods = class_methods[class_name];
+
+    if(methods.find(meth_name) == methods.end()){
+        return nullptr;
+    }
+    return methods[meth_name];
+}
 ////////////////////////////////////////////////////////////////////
 //
 // semant_error is an overloaded function for reporting errors
@@ -327,6 +391,13 @@ ostream& ClassTable::semant_error()
 
 
 
+
+void error(){
+    
+    cerr << "Compilation halted due to static semantic errors." << endl;
+    exit(1);
+}
+
 /*   This is the entry point to the semantic checker.
 
      Your checker should do the following two things:
@@ -345,16 +416,21 @@ void program_class::semant()
     initialize_constants();
 
     /* ClassTable constructor may do some semantic analysis */
-    ClassTable *classtable = new ClassTable(classes);
+    classtable = new ClassTable(classes);
 
     /* some semantic analysis code may go here */
-    classtable->install_custom_classes(classes);
+    if(!classtable->install_custom_classes(classes)){
+        error();
+    }
     //criar grafo de herança, ver se o mesmo é acíclico, ver se todas as classes foram definidas
 
-    if (classtable->errors()) {
-	cerr << "Compilation halted due to static semantic errors." << endl;
-	exit(1);
-    }
+    if(!classtable->build_inheritance_graph())
+        error();
+
+    if(!classtable->check_if_classTable_is_ok())
+        error();
+
+    
 }
 
 
