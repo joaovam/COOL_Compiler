@@ -313,6 +313,26 @@ Symbol ClassTable::least_upper_bound(Symbol x, Symbol y){//returns the least com
     }
     return Object;
 }
+/**
+ * Functions for type checking step
+ * 
+*/
+
+bool ClassTable:: is_type_defined(Symbol x){//checks if type x is defined
+    return this->class_index.find(x) != this->class_index.end();
+}
+
+bool ClassTable::is_primitive(Symbol symbol) {//tells if a class is a primitive
+    return symbol == Object ||symbol == IO     ||symbol == Int    ||symbol == Bool   ||symbol == Str;
+    
+}
+
+Symbol ClassTable::get_parent(Symbol x){//returns the name of the parent class of class x
+    if(this->parent_index.find(x) == this->parent_index.end())
+        return No_type;
+    
+    return this->parent_index[x];
+}
 
 bool ClassTable::check_if_classTable_is_ok(){
     if(!this->search_for_cycle_in_inheritance_graph()){
@@ -325,7 +345,6 @@ bool ClassTable::check_if_classTable_is_ok(){
     }
     return true;
 }
-
 
 std::map<Symbol, method_class*> retrieve_methods_from_class(Class_ class_definition){
     std::map<Symbol, method_class*> methods;
@@ -349,6 +368,30 @@ std::map<Symbol, method_class*> retrieve_methods_from_class(Class_ class_definit
     return methods;
 }
 
+std::map<Symbol, attr_class*> retrieve_attrs_from_class(Class_ class_definition){
+    std::map<Symbol, attr_class*> attrs;
+
+    Symbol name = class_definition->get_name();
+    Features features = class_definition->get_features();
+
+    for(int i = features->first(); features->more(i); i = features->next(i)){
+        Feature f = features->nth(i);
+        if(f->is_attr()){
+            attr_class * attr = static_cast<attr_class*>(f);
+            Symbol attr_name = attr->get_name();
+
+            if(attrs.find(attr_name) != attrs.end()){//checks if attr is already defined, should not stop error recon
+                classtable->semant_error(class_definition) << "Attribute " << attr_name << "already defined previously\n";
+            }else{
+                attrs[attr_name] = attr;
+            }
+        }
+    }
+    return attrs;
+}
+
+
+
 method_class* get_class_method(Symbol class_name, Symbol meth_name){
     std::map<Symbol, method_class*> methods = class_methods[class_name];
 
@@ -356,6 +399,15 @@ method_class* get_class_method(Symbol class_name, Symbol meth_name){
         return nullptr;
     }
     return methods[meth_name];
+}
+
+attr_class* get_class_attr(Symbol class_name, Symbol attr_name){
+    std::map<Symbol, attr_class*> attrs = class_attrs[class_name];
+
+    if(attrs.find(attr_name) == attrs.end()){//there is no such attribute specified
+        return nullptr;
+    }
+    return attrs[attr_name];
 }
 ////////////////////////////////////////////////////////////////////
 //

@@ -43,8 +43,12 @@ public:
   bool build_inheritance_graph();
   bool search_for_cycle_in_inheritance_graph();
   bool inheritance_graph_dfs(Symbol symbol);
-  Symbol least_upper_bound(Symbol x, Symbol y);
+  bool is_type_defined(Symbol x);
+  bool is_primitive(Symbol symbol);
   bool check_if_classTable_is_ok();
+  
+  Symbol get_parent(Symbol x);
+  Symbol least_upper_bound(Symbol x, Symbol y);
 
   ostream& semant_error();
   ostream& semant_error(Class_ c);
