@@ -1,4 +1,8 @@
-class C {
+Class B{
+
+};
+
+Class C {
 	a : Int;
 	b : Bool;
 	init(x : Int, y : Bool) : C {

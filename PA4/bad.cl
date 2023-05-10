@@ -10,7 +10,7 @@ class C {
 	};
 };
 
-Class Main {
+class Main {
 	main():C {
 	 {
 	  (new C).init(1,1);
@@ -19,4 +19,28 @@ Class Main {
 	  (new C);
 	 }
 	};
+};
+
+--Nao tem como testar todos os erros de classe pois após alguns deles o programa deve finalizar com erro
+
+class Bar inherits Int{
+
+};
+
+class X inherits NotDefined{
+
+};
+
+
+
+class Cir inherits Cular{
+
+};
+
+class Foo inherits Cir{
+
+};
+
+class Cular inherits Foo{
+
 };

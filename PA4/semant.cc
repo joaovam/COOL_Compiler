@@ -91,7 +91,7 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
 void ClassTable::install_basic_classes() {
 
     // The tree package uses these globals to annotate the classes built below.
-    curr_lineno  = 0;
+    //curr_lineno  = 0;
     Symbol filename = stringtable.add_string("<basic class>");
     
     // The following demonstrates how to create dummy parse trees to
@@ -197,8 +197,12 @@ void ClassTable::install_basic_classes() {
 
 bool ClassTable::install_custom_classes(Classes classes){
     for(int i = classes->first(); classes->more(i); i = classes->next(i)){
+
         Class_ current = classes->nth(i);
         Symbol class_name = current->get_name();
+
+        //cout << "Passing through class: " << class_name << endl;
+
         if(class_name == Int || 
         class_name == Bool ||
         class_name == Str ||
@@ -208,23 +212,29 @@ bool ClassTable::install_custom_classes(Classes classes){
             semant_error(current) << "Redefinition of " << class_name << " is not allowed. \n";
             return false;
 
-        } else if(this->class_index.find(class_name) == class_index.end()){
+        } else if(this->class_index.find(class_name) != class_index.end()){
 
-            class_index[class_name] = current;
-            return true;
-        }else{
             semant_error(current) << "Class " << class_name <<" is already defined. \n";
             return false;
+
+            
+        }else{
+
+            //cout << "Indexing class: " << class_name << endl;
+            this->class_index[class_name] = current;
+            
         }
     }
+
+    return true;
 
 }
 
 bool ClassTable::build_inheritance_graph(){//builds inheritance graph
 
     for (auto const& class_map : this->class_index){
-        Symbol name = class_map.first;//first postion of map;
 
+        Symbol name = class_map.first;//first postion of map;
 
         if(name != Object){//class object has no antecessor
 
@@ -233,11 +243,15 @@ bool ClassTable::build_inheritance_graph(){//builds inheritance graph
 
             Symbol parent_name = definition->get_parent_name();
 
+            parent_index[name] = parent_name;
+            
             if(this->class_index.find(parent_name) ==this->class_index.end()){
                 semant_error(definition) << "Class " << name << " inherits from undefined class " << parent_name << ".\n"; 
                 return false;
 
-            } else if(parent_name == Int || 
+            } 
+            
+            if(parent_name == Int || 
                 parent_name == Bool ||
                 parent_name == Str ||
                 parent_name == SELF_TYPE){
@@ -246,6 +260,7 @@ bool ClassTable::build_inheritance_graph(){//builds inheritance graph
                 return false;
             }
 
+
             if(this->inheritance_graph.find(parent_name) == this->inheritance_graph.end()){
                 this->inheritance_graph[parent_name] = std::vector<Symbol>();
             }
@@ -253,17 +268,21 @@ bool ClassTable::build_inheritance_graph(){//builds inheritance graph
             this->inheritance_graph[parent_name].push_back(name);
 
         }
-        return true;
+        
     }
+    return true;
 }
 
 enum NodeColor {white, gray, black};
 std::map<Symbol, NodeColor> color;
 
 bool ClassTable::search_for_cycle_in_inheritance_graph(){
+
     color.clear();
+
     for(auto const& c : this->class_index){
         color[c.first] = white;
+        //std::cout << "Class: " << c.first << endl;
     }
 
     for(auto const& c : this->class_index){
@@ -276,9 +295,15 @@ bool ClassTable::search_for_cycle_in_inheritance_graph(){
 
 bool ClassTable::inheritance_graph_dfs(Symbol symbol){
 
+    //std::cout << "Color of symbol: " << color[symbol] <<std::endl;
+
     color[symbol] = gray;//visiting the vertex
 
     for (auto const& current: inheritance_graph[symbol]){
+
+        //std::cout << "Edge between: " << symbol <<" and " <<current << std::endl;
+        //std::cout << "Color of Current: " << color[current] <<std::endl;
+
         if(color[current] == gray){
             semant_error() << "There is a circular inheritance with class " << current << " and " << symbol <<".\n";
             return false;
@@ -289,6 +314,7 @@ bool ClassTable::inheritance_graph_dfs(Symbol symbol){
         }
 
     }
+    color[symbol] = black;
     return true;
     
 }
@@ -339,7 +365,8 @@ bool ClassTable::check_if_classTable_is_ok(){
         return false;
     }
 
-    if(this->class_index.find(Main) == this->class_index.end()){
+
+    if(! this->is_type_defined(Main)){
             semant_error() << "No definition of Main found. \n";
             return false;
     }

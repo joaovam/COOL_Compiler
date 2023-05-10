@@ -180,3 +180,5 @@ Instructions
 
 Write-up for PA4
 ----------------
+
+Assim como dito no documento do trabalho decidimos dividir a fase de análise semântica em duas partes. Primeiro verificamos as restrições das classes em Cool e se existe alguma herança para uma classe não definida e log após verificamos o grafo de herança, o qual utilizamos um dicionário indexado pelo nome das classes e como valor temos uma lista de classes, a ideia que em cada posição X do dicionário tenhamos as classes que herdam da classe X. Com isso criamos os atributos necessários e partimos para a verificação de demais condições semânticas, como especificado no documento do trabalho.
