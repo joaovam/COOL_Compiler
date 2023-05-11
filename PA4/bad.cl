@@ -22,25 +22,30 @@ class Main {
 };
 
 --Nao tem como testar todos os erros de classe pois após alguns deles o programa deve finalizar com erro
-
-class Bar inherits Int{
-
-};
-
-class X inherits NotDefined{
-
+class T1{
+	x:Int;
+	x:Int;
 };
 
 
+-- class Bar inherits Int{
 
-class Cir inherits Cular{
+-- };
 
-};
+-- class X inherits NotDefined{
 
-class Foo inherits Cir{
+-- };
 
-};
 
-class Cular inherits Foo{
 
-};
+-- class Cir inherits Cular{
+
+-- };
+
+-- class Foo inherits Cir{
+
+-- };
+
+-- class Cular inherits Foo{
+
+-- };

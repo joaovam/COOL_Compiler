@@ -1,7 +1,3 @@
-Class B{
-
-};
-
 Class C {
 	a : Int;
 	b : Bool;
@@ -12,6 +8,14 @@ Class C {
 		self;
            }
 	};
+};
+
+Class B inherits C{
+
+};
+
+class D inherits C{
+	
 };
 
 Class Main {

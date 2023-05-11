@@ -403,21 +403,25 @@ std::map<Symbol, attr_class*> retrieve_attrs_from_class(Class_ class_definition)
 
     for(int i = features->first(); features->more(i); i = features->next(i)){
         Feature f = features->nth(i);
+
         if(f->is_attr()){
+
             attr_class * attr = static_cast<attr_class*>(f);
             Symbol attr_name = attr->get_name();
+            //std::cout << "checking attr: " << attr->get_name() <<endl;
 
             if(attrs.find(attr_name) != attrs.end()){//checks if attr is already defined, should not stop error recon
-                classtable->semant_error(class_definition) << "Attribute " << attr_name << "already defined previously\n";
-            }else{
-                attrs[attr_name] = attr;
+                classtable->semant_error(class_definition) << "Attribute " << attr_name << " already defined previously\n";
+
             }
+
+            //std::cout << "indexing attr: " << attr->get_name() <<endl;
+            attrs[attr_name] = attr;
+            
         }
     }
     return attrs;
 }
-
-
 
 method_class* get_class_method(Symbol class_name, Symbol meth_name){
     std::map<Symbol, method_class*> methods = class_methods[class_name];
@@ -436,6 +440,16 @@ attr_class* get_class_attr(Symbol class_name, Symbol attr_name){
     }
     return attrs[attr_name];
 }
+
+
+
+void register_class_methods_and_attrs(Class_ definition){
+    class_methods[definition->get_name()] = retrieve_methods_from_class(definition);
+    class_attrs[definition->get_name()] = retrieve_attrs_from_class(definition);
+}
+
+
+
 ////////////////////////////////////////////////////////////////////
 //
 // semant_error is an overloaded function for reporting errors
@@ -501,13 +515,24 @@ void program_class::semant()
     if(!classtable->install_custom_classes(classes)){
         error();
     }
-    //criar grafo de herança, ver se o mesmo é acíclico, ver se todas as classes foram definidas
-
+    
+    //build the inheritance graph using a map
     if(!classtable->build_inheritance_graph())
         error();
 
+    //checks if the classtable is acyclic and has no inheritance from undefined class
     if(!classtable->check_if_classTable_is_ok())
         error();
+
+    //registering all the methods and attributes on a map indexed by the name of the class
+    for(auto const& x : classtable->class_index)
+        register_class_methods_and_attrs(x.second);
+    
+
+    //exits with error in case of semantic problems
+    if(classtable->errors())
+        error();
+    
 
     
 }
