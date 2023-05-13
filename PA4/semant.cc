@@ -5,7 +5,6 @@
 #include "semant.h"
 #include "utilities.h"
 
-
 extern int semant_debug;
 extern char *curr_filename;
 
@@ -45,6 +44,7 @@ static Symbol
     substr,
     type_name,
     val;
+
 //
 // Initializing the predefined symbols.
 //
@@ -80,12 +80,12 @@ static void initialize_constants(void)
     val         = idtable.add_string("_val");
 }
 
-
+////////////////////////////////////////////////////////////////////
+//                          CLASS TABLE
+////////////////////////////////////////////////////////////////////
 
 ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) {
-
     install_basic_classes();
-
 }
 
 void ClassTable::install_basic_classes() {
@@ -197,78 +197,56 @@ void ClassTable::install_basic_classes() {
 
 bool ClassTable::install_custom_classes(Classes classes){
     for(int i = classes->first(); classes->more(i); i = classes->next(i)){
-
         Class_ current = classes->nth(i);
         Symbol class_name = current->get_name();
 
         //cout << "Passing through class: " << class_name << endl;
 
-        if(class_name == Int || 
+        if (class_name == Int || 
         class_name == Bool ||
         class_name == Str ||
         class_name == SELF_TYPE ||
-        class_name == Object){
-
+        class_name == Object) {
             semant_error(current) << "Redefinition of " << class_name << " is not allowed. \n";
             return false;
-
-        } else if(this->class_index.find(class_name) != class_index.end()){
-
+        } else if (this->class_index.find(class_name) != class_index.end()) {
             semant_error(current) << "Class " << class_name <<" is already defined. \n";
             return false;
-
-            
-        }else{
-
+        } else {
             //cout << "Indexing class: " << class_name << endl;
             this->class_index[class_name] = current;
-            
         }
     }
-
     return true;
-
 }
 
-bool ClassTable::build_inheritance_graph(){//builds inheritance graph
-
+bool ClassTable::build_inheritance_graph(){ // builds inheritance graph
     for (auto const& class_map : this->class_index){
-
-        Symbol name = class_map.first;//first postion of map;
-
-        if(name != Object){//class object has no antecessor
-
-
+        Symbol name = class_map.first; // first position of map;
+        if(name != Object){ // class object has no antecessor
             Class_ definition = class_map.second;
-
             Symbol parent_name = definition->get_parent_name();
-
             parent_index[name] = parent_name;
             
-            if(this->class_index.find(parent_name) ==this->class_index.end()){
+            if (this->class_index.find(parent_name) ==this->class_index.end()) {
                 semant_error(definition) << "Class " << name << " inherits from undefined class " << parent_name << ".\n"; 
                 return false;
-
             } 
             
-            if(parent_name == Int || 
-                parent_name == Bool ||
-                parent_name == Str ||
-                parent_name == SELF_TYPE){
-                
+            if (parent_name == Int || 
+            parent_name == Bool ||
+            parent_name == Str ||
+            parent_name == SELF_TYPE) {
                 semant_error(definition) << "Class " << name <<" cannot inherit from primitive class " << parent_name << ".\n";
                 return false;
             }
 
-
-            if(this->inheritance_graph.find(parent_name) == this->inheritance_graph.end()){
+            if (this->inheritance_graph.find(parent_name) == this->inheritance_graph.end()) {
                 this->inheritance_graph[parent_name] = std::vector<Symbol>();
             }
 
             this->inheritance_graph[parent_name].push_back(name);
-
         }
-        
     }
     return true;
 }
@@ -339,10 +317,10 @@ Symbol ClassTable::least_upper_bound(Symbol x, Symbol y){//returns the least com
     }
     return Object;
 }
-/**
- * Functions for type checking step
- * 
-*/
+
+////////////////////////////////////////////////////////////////////
+//                          
+////////////////////////////////////////////////////////////////////
 
 bool ClassTable:: is_type_defined(Symbol x){//checks if type x is defined
     return this->class_index.find(x) != this->class_index.end();
@@ -350,7 +328,6 @@ bool ClassTable:: is_type_defined(Symbol x){//checks if type x is defined
 
 bool ClassTable::is_primitive(Symbol symbol) {//tells if a class is a primitive
     return symbol == Object ||symbol == IO     ||symbol == Int    ||symbol == Bool   ||symbol == Str;
-    
 }
 
 Symbol ClassTable::get_parent(Symbol x){//returns the name of the parent class of class x
@@ -364,7 +341,6 @@ bool ClassTable::check_if_classTable_is_ok(){
     if(!this->search_for_cycle_in_inheritance_graph()){
         return false;
     }
-
 
     if(! this->is_type_defined(Main)){
             semant_error() << "No definition of Main found. \n";
@@ -441,13 +417,47 @@ attr_class* get_class_attr(Symbol class_name, Symbol attr_name){
     return attrs[attr_name];
 }
 
-
-
 void register_class_methods_and_attrs(Class_ definition){
     class_methods[definition->get_name()] = retrieve_methods_from_class(definition);
     class_attrs[definition->get_name()] = retrieve_attrs_from_class(definition);
 }
 
+////////////////////////////////////////////////////////////////////
+//                          TYPECHECKING
+////////////////////////////////////////////////////////////////////
+
+void type_check(Class_ next_class) {
+    current_class_name = next_class->get_name();
+    current_class_definition = next_class;
+    current_class_methods = retrieve_methods_from_class(next_class);
+    current_class_attrs = retrieve_attrs_from_class(next_class);
+
+    symbol_table = new SymbolTable<Symbol, Symbol>();
+    symbol_table->enterscope();
+    symbol_table->addid(self, new Symbol(current_class_definition->get_name()));
+
+    build_attribute_scopes(next_class);
+    
+    for (const auto &x : current_class_methods) {
+        process_method(next_class, x.second, x.second);
+    }
+
+    for (const auto &x : current_class_attrs) {
+        Symbol parent_type_name = class_table->get_parent_type_of(current_class_name);
+        Class_ parent_definition = class_table->class_lookup[parent_type_name];
+        process_attr(parent_definition, x.second);
+    }
+
+    for (const auto &x : current_class_attrs) {
+        x.second->type_check();
+    }
+
+    for (const auto &x : current_class_methods) {
+        x.second->type_check();
+    }
+
+    symbol_table->exitscope();
+}
 
 
 ////////////////////////////////////////////////////////////////////
