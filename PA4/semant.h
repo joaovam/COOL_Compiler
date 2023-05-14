@@ -59,6 +59,7 @@ public:
 ClassTable *classtable;
 
 //use for type check
+SymbolTable<Symbol, Symbol> *symbol_table;
 Symbol current_class_name;
 Class_ current_class_definition;
 std::map<Symbol, method_class*> current_class_methods;
