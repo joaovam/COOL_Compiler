@@ -57,6 +57,7 @@ public:
 
 
 ClassTable *classtable;
+void error();
 
 //use for type check
 SymbolTable<Symbol, Symbol> *symbol_table;
