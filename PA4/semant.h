@@ -25,7 +25,7 @@ typedef ClassTable *ClassTableP;
 
 class ClassTable {
 private:
-  std::map<Symbol, std::vector<Symbol>> inheritance_graph;
+  std::map<Symbol, std::vector<Symbol> > inheritance_graph;
 
   int semant_errors;
   void install_basic_classes();
@@ -66,8 +66,8 @@ std::map<Symbol, method_class*> current_class_methods;
 std::map<Symbol, attr_class*> current_class_attrs;
 
 //contains all the methods and attributes index by the name of the Class
-std::map<Symbol, std::map<Symbol, method_class*>> class_methods;
-std::map<Symbol, std::map<Symbol, attr_class*>> class_attrs;
+std::map<Symbol, std::map<Symbol, method_class*> > class_methods;
+std::map<Symbol, std::map<Symbol, attr_class*> > class_attrs;
 
 #endif
 
