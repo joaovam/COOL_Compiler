@@ -22,22 +22,29 @@ class Main {
 };
 
 --Nao tem como testar todos os erros de classe pois após alguns deles o programa deve finalizar com erro
+-- comentar os testes abaixo caso necessário
 class T1{
 	x:Int;
 	x:Int;
 };
 
+--Redefinition of class Int
+class Int{
 
+};
+
+-- Inherits of primitive class
 class Bar inherits Int{
 
 };
 
+-- Inherits not defined class
 class X inherits NotDefined{
 
 };
 
 
-
+-- Circular inheritance
 class Cir inherits Cular{
 
 };
