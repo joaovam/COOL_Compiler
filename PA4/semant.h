@@ -25,7 +25,7 @@ typedef ClassTable *ClassTableP;
 
 class ClassTable {
 private:
-  std::map<Symbol, std::vector<Symbol>> inheritance_graph;
+  std::map<Symbol, std::vector<Symbol> > inheritance_graph;
 
   int semant_errors;
   void install_basic_classes();
