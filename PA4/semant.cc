@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <symtab.h>
 #include "semant.h"
 #include "utilities.h"
 
@@ -318,10 +319,6 @@ Symbol ClassTable::least_upper_bound(Symbol x, Symbol y){//returns the least com
     return Object;
 }
 
-////////////////////////////////////////////////////////////////////
-//                          
-////////////////////////////////////////////////////////////////////
-
 bool ClassTable:: is_type_defined(Symbol x){//checks if type x is defined
     return this->class_index.find(x) != this->class_index.end();
 }
@@ -426,6 +423,120 @@ void register_class_methods_and_attrs(Class_ definition){
 //                          TYPECHECKING
 ////////////////////////////////////////////////////////////////////
 
+// Adiciona cada atributo para o escopo da classe, incluso os herdados
+void build_attribute_scopes(Class_ current_class) {
+    symbol_table->enterscope();
+    symbol_table->addid(self, new Symbol(current_class_definition->get_name()));
+
+    std::map<Symbol, attr_class*> attrs = retrieve_attrs_from_class(current_class);
+    for(const auto &x : attrs) {
+        attr_class* attr_definition = x.second;
+        objects_table->addid(
+            attr_definition->get_name(), 
+            new Symbol(attr_definition->get_type())
+        );
+    }
+
+    if(current_class->get_name() == Object)
+        return;
+
+    Symbol parent_type = classtable->get_parent(current_class->get_name());
+    Class_ parent_definition = classtable->class_index[parent_type];
+    build_attribute_scopes(parent_definition);
+}
+
+// Checa se atributos existem na classe herdada
+void process_attributes(Class_ current_class, attr_class* attr){
+    if(get_class_attr(current_class->get_name(), attr->get_name()) != nullptr){
+        classtable->semant_error(class_definition) 
+            << "Attribute " << attr_name << " already defined on an inherited class.\n";
+        error();
+    }
+    
+    Symbol parent_name = classtable->get_parent(current_class->get_name());
+    if (parent_name == No_type)
+        return;
+    Class_ parent_definition = classtable->class_index[parent_name];
+    process_attributes(parent_definition, attr);
+}
+
+// Checagem de metodos para caso de Override
+void process_method(Class_ current_class, method_class* original_method, method_class* parent_method){
+    // Verificando se há metodo de mesmo nome na classe pai.
+    if (parent_method == nullptr) return;
+
+    Symbol parent_name = classtable->get_parent(current_class->get_name());
+    if (parent_name == No_type)
+        return;
+
+    // Garatindo que o metodo sobrescrito mantém o mesmo tipo de retorno.
+    if (original_method->get_return_type() != parent_method->get_return_type()){
+        classtable->semant_error(current_class)
+            << "In the method overrided " << original_method->get_name()
+            << ", the return type " << original_method->get_return_type()
+            << " is different from inherited method type " 
+            << parent_method->get_return_type() << ".\n";
+    }
+
+    // Garatindo que o numero de argumentos se mantém  
+    Formals original_method_args = original_method->get_formals();
+    Formals parent_method_args = parent_method->get_formals();
+
+    int n_original_method_args = 0;
+    int n_parent_method_args = 0;
+
+    while (original_method_args->more(n_original_method_args)){
+        n_original_method_args = original_method_args->next(n_original_method_args);
+    }
+    while (parent_method_args->more(n_parent_method_args)){
+        n_parent_method_args = parent_method_args->next(n_parent_method_args);
+    }
+
+    if(n_original_method_args != n_parent_method_args){
+        classtable->semant_error(current_class)
+            << "In the method overrided " << original_method->get_name()
+            << ", the number of arguments " << n_original_method_args
+            << " is different from inherited method number of arguments " 
+            << "(" << parent_method->get_return_type() << ")" << ".\n";
+    }
+
+    // Garatindo que os argumentos são de mesmo tipo
+    n_original_method_args = 0;
+    n_parent_method_args = 0;
+    
+    while(
+        original_method_args->more(n_original_method_args) &&
+        parent_method_args->more(n_parent_method_args))
+    {
+        Formal original_formal = original_method_args->nth(n_original_method_args);
+        Formal parent_formal = parent_method_args->nth(n_parent_method_args);
+
+        if(original_formal->get_type() != parent_formal->get_type()){
+            classtable->semant_error(current_class)
+                << "In the method overrided " << original_method->get_name()
+                << ", the type of argument " << original_formal->get_name()
+                << " (" << original_formal->get_type() << ")" 
+                << " is different from the corresponding inherited method argument "
+                << parent_formal->get_name() << " (" << parent_formal->get_type() << ")" 
+                << ".\n";
+            }
+
+        n_original_method_args = original_method_args->next(n_original_method_args);
+        n_parent_method_args = parent_method_args->next(n_parent_method_args);
+    }
+
+    Class_ parent_class_definition = classtable->class_index[parent_name];
+
+    process_method(
+        parent_class_definition,
+        original_method,
+        get_class_method(
+            parent_name,
+            original_method->get_name()
+        )
+    )
+}
+
 void type_check(Class_ next_class) {
     current_class_name = next_class->get_name();
     current_class_definition = next_class;
@@ -433,9 +544,6 @@ void type_check(Class_ next_class) {
     current_class_attrs = retrieve_attrs_from_class(next_class);
 
     symbol_table = new SymbolTable<Symbol, Symbol>();
-    symbol_table->enterscope();
-    symbol_table->addid(self, new Symbol(current_class_definition->get_name()));
-
     build_attribute_scopes(next_class);
     
     for (const auto &x : current_class_methods) {
@@ -443,9 +551,9 @@ void type_check(Class_ next_class) {
     }
 
     for (const auto &x : current_class_attrs) {
-        Symbol parent_type_name = class_table->get_parent_type_of(current_class_name);
-        Class_ parent_definition = class_table->class_lookup[parent_type_name];
-        process_attr(parent_definition, x.second);
+        Symbol parent_name = classtable->get_parent(current_class_name);
+        Class_ parent_definition = classtable->class_index[parent_name];
+        process_attributes(parent_definition, x.second);
     }
 
     for (const auto &x : current_class_attrs) {
@@ -455,10 +563,66 @@ void type_check(Class_ next_class) {
     for (const auto &x : current_class_methods) {
         x.second->type_check();
     }
-
-    symbol_table->exitscope();
 }
 
+Symbol int_const_class::type_check() {
+    this->set_type(Int);
+    return Int;
+}
+
+Symbol bool_const_class::type_check() {
+    this->set_type(Bool);
+    return Bool;
+}
+
+Symbol string_const_class::type_check() {
+    this->set_type(Str);
+    return Str;
+}
+
+Symbol object_class::type_check() {
+    if (name == self) {
+        this->set_type(SELF_TYPE);
+        return SELF_TYPE;
+    }
+
+    Symbol* object_type = symbol_table->lookup(name);
+    if (object != nullptr){
+        this->set_type(*object_type);
+        return *object_type;
+    }
+
+    this->set_type(Object);
+    classtable->semant_error(this)
+        << "The object "
+        << name
+        << " is undefined in this scope.\n";
+    return Object;
+}
+
+method_class* get_method_def_in_inheritance(Symbol class_name,Symbol method_name){
+    if (class_name == No_type)
+        return nullptr;
+
+    method_class* def = get_class_method(class_name,method_name);
+    if (def)
+        return def;
+
+    Symbol parent_name = classtable->get_parent(class_name);
+    return get_method_def_in_inheritance(class_name, method_name);
+}
+
+method_class* get_method_def(Symbol class_name, Symbol method_name){
+    method_class* method = get_method_def_in_inheritance(class_name, method_name);
+
+    if (method)
+        return method;
+
+    if (classtable->is_primitive(class_name)){
+        return get_class_method(class_name, method_name);
+    }
+    return nullptr;
+}
 
 ////////////////////////////////////////////////////////////////////
 //
@@ -538,6 +702,9 @@ void program_class::semant()
     for(auto const& x : classtable->class_index)
         register_class_methods_and_attrs(x.second);
     
+    //typechecking all classes, attributes, methods, expressions, etc.
+    for (int i = classes->first(i); classes->more(i); i = classes->next(i))
+        type_check(classes->nth(i));
 
     //exits with error in case of semantic problems
     if(classtable->errors())
