@@ -787,7 +787,7 @@ void program_class::semant()
         register_class_methods_and_attrs(x.second);
     
     //typechecking all classes, attributes, methods, expressions, etc.
-    for (int i = classes->first(i); classes->more(i); i = classes->next(i))
+    for (int i = 0; classes->more(i); i = classes->next(i))
         type_check(classes->nth(i));
 
     //exits with error in case of semantic problems
