@@ -593,7 +593,7 @@ Symbol object_class::type_check() {
     }
 
     this->set_type(Object);
-    classtable->semant_error(this);
+    classtable->semant_error(this)
         << "The object "
         << name
         << " is undefined in this scope.\n";
@@ -622,6 +622,90 @@ method_class* get_method_def(Symbol class_name, Symbol method_name){
         return get_class_method(class_name, method_name);
     }
     return nullptr;
+}
+
+Symbol no_expr_class::type_check() {
+    // Your implementation here
+}
+
+Symbol isvoid_class::type_check() {
+    // Your implementation here
+}
+
+Symbol new__class::type_check() {
+    // Your implementation here
+}
+
+Symbol comp_class::type_check() {
+    // Your implementation here
+}
+
+Symbol leq_class::type_check() {
+    // Your implementation here
+}
+
+Symbol eq_class::type_check() {
+    // Your implementation here
+}
+
+Symbol lt_class::type_check() {
+    // Your implementation here
+}
+
+Symbol neg_class::type_check() {
+    // Your implementation here
+}
+
+Symbol divide_class::type_check() {
+    // Your implementation here
+}
+
+Symbol mul_class::type_check() {
+    // Your implementation here
+}
+
+Symbol sub_class::type_check() {
+    // Your implementation here
+}
+
+Symbol plus_class::type_check() {
+    // Your implementation here
+}
+
+Symbol let_class::type_check() {
+    // Your implementation here
+}
+
+Symbol block_class::type_check() {
+    // Your implementation here
+}
+
+Symbol typcase_class::type_check() {
+    // Your implementation here
+}
+
+Symbol loop_class::type_check() {
+    // Your implementation here
+}
+
+Symbol cond_class::type_check() {
+    // Your implementation here
+}
+
+Symbol dispatch_class::type_check() {
+    // Your implementation here
+}
+
+Symbol static_dispatch_class::type_check() {
+    // Your implementation here
+}
+
+Symbol assign_class::type_check() {
+    // Your implementation here
+}
+
+Symbol branch_class::type_check() {
+    // Your implementation here
 }
 
 ////////////////////////////////////////////////////////////////////
