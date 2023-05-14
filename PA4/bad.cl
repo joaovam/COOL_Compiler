@@ -28,24 +28,24 @@ class T1{
 };
 
 
--- class Bar inherits Int{
+class Bar inherits Int{
 
--- };
+};
 
--- class X inherits NotDefined{
+class X inherits NotDefined{
 
--- };
+};
 
 
 
--- class Cir inherits Cular{
+class Cir inherits Cular{
 
--- };
+};
 
--- class Foo inherits Cir{
+class Foo inherits Cir{
 
--- };
+};
 
--- class Cular inherits Foo{
+class Cular inherits Foo{
 
--- };
+};
