@@ -431,7 +431,7 @@ void build_attribute_scopes(Class_ current_class) {
     std::map<Symbol, attr_class*> attrs = retrieve_attrs_from_class(current_class);
     for(const auto &x : attrs) {
         attr_class* attr_definition = x.second;
-        objects_table->addid(
+        symbol_table->addid(
             attr_definition->get_name(), 
             new Symbol(attr_definition->get_type())
         );
@@ -448,8 +448,8 @@ void build_attribute_scopes(Class_ current_class) {
 // Checa se atributos existem na classe herdada
 void process_attributes(Class_ current_class, attr_class* attr){
     if(get_class_attr(current_class->get_name(), attr->get_name()) != nullptr){
-        classtable->semant_error(class_definition) 
-            << "Attribute " << attr_name << " already defined on an inherited class.\n";
+        classtable->semant_error(current_class_definition) 
+            << "Attribute " << attr->get_name() << " already defined on an inherited class.\n";
         error();
     }
     
@@ -534,7 +534,7 @@ void process_method(Class_ current_class, method_class* original_method, method_
             parent_name,
             original_method->get_name()
         )
-    )
+    );
 }
 
 void type_check(Class_ next_class) {
@@ -593,7 +593,7 @@ Symbol object_class::type_check() {
     }
 
     this->set_type(Object);
-    classtable->semant_error(this)
+    classtable->semant_error(this);
         << "The object "
         << name
         << " is undefined in this scope.\n";
