@@ -81,14 +81,16 @@ virtual void dump_with_types(ostream&,int) = 0;
 	Symbol get_name() { return name; }               \
 	Formals get_formals() { return formals; }        \
 	Symbol get_return_type() { return return_type; } \
-	Expression get_body_expr() { return expr; }
+	Expression get_body_expr() { return expr; } 	 \
+	Symbol type_check();
 
 #define attr_EXTRAS                         \
 	bool is_method() { return false; }      \
 	bool is_attr() { return true; }         \
 	Symbol get_name() { return name; }      \
 	Symbol get_type() { return type_decl; } \
-	Expression get_init_expr() { return init; }
+	Expression get_init_expr() { return init; } \
+	Symbol type_check();
 
 
 #define Feature_SHARED_EXTRAS                                       \
@@ -99,19 +101,22 @@ void dump_with_types(ostream&,int);
 
 
 #define Formal_EXTRAS                              \
-virtual void dump_with_types(ostream&,int) = 0;
-
+virtual void dump_with_types(ostream&,int) = 0;		\
+virtual Symbol get_name() = 0;						\
+virtual Symbol get_type() = 0;						
 
 #define formal_EXTRAS                           \
-void dump_with_types(ostream&,int);
-
+void dump_with_types(ostream&,int);				\
+Symbol get_name() {return name;}					\
+Symbol get_type() {return type_decl;}
 
 #define Case_EXTRAS                             \
-virtual void dump_with_types(ostream& ,int) = 0;
-
+virtual void dump_with_types(ostream& ,int) = 0;\
+virtual Symbol type_check() = 0;				\
 
 #define branch_EXTRAS                                   \
-void dump_with_types(ostream& ,int);
+void dump_with_types(ostream& ,int);			\
+Symbol type_check();
 
 
 #define Expression_EXTRAS                    \
@@ -120,9 +125,11 @@ Symbol get_type() { return type; }           \
 Expression set_type(Symbol s) { type = s; return this; } \
 virtual void dump_with_types(ostream&,int) = 0;  \
 void dump_type(ostream&, int);               \
-Expression_class() { type = (Symbol) NULL; }
+Expression_class() { type = (Symbol) NULL; } \
+virtual Symbol type_check() = 0;
 
 #define Expression_SHARED_EXTRAS           \
-void dump_with_types(ostream&,int); 
+void dump_with_types(ostream&,int); 		\
+Symbol type_check();
 
 #endif
