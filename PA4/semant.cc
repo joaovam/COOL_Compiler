@@ -593,7 +593,7 @@ Symbol object_class::type_check() {
     }
 
     this->set_type(Object);
-    classtable->semant_error(this);
+    classtable->semant_error(this)
         << "The object "
         << name
         << " is undefined in this scope.\n";
