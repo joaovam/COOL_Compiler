@@ -17,12 +17,6 @@
 class ClassTable;
 typedef ClassTable *ClassTableP;
 
-// This is a structure that may be used to contain the semantic
-// information such as the inheritance graph.  You may use it or not as
-// you like: it is only here to provide a container for the supplied
-// methods.
-
-
 class ClassTable {
 private:
   std::map<Symbol, std::vector<Symbol> > inheritance_graph;
@@ -54,20 +48,21 @@ public:
   ostream& semant_error();
   ostream& semant_error(Class_ c);
   ostream& semant_error(Symbol filename, tree_node *t);
+  ostream& semant_error(tree_node *t);
 };
 
 
 ClassTable *classtable;
 void error();
 
-//use for type check
+// Usado para checagem de tipo
 SymbolTable<Symbol, Symbol> *symbol_table;
 Symbol current_class_name;
 Class_ current_class_definition;
 std::map<Symbol, method_class*> current_class_methods;
 std::map<Symbol, attr_class*> current_class_attrs;
 
-//contains all the methods and attributes index by the name of the Class
+// COntém todos os métodos e atributos indexados pelo nome da classe
 std::map<Symbol, std::map<Symbol, method_class*> > class_methods;
 std::map<Symbol, std::map<Symbol, attr_class*> > class_attrs;
 
