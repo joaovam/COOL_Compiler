@@ -799,9 +799,10 @@ Symbol branch_class::type_check() {
 }
 
 // semant_error é uma função para relatar erros durante a análise semântica. 
-// Ela possui 3 versões:               
+// Ela possui 4 versões:               
 // ostream& ClassTable::semant_error(Class_ c) - printa o número da linha e o nome do arquivo para 'c'
 // ostream& ClassTable::semant_error(Symbol filename, tree_node *t) - printa o número da linha e o nome do arquivo
+// ostream& ClassTable::semant_error(tree_node *t)
 // ostream& ClassTable::semant_error()
 
 ostream& ClassTable::semant_error(Class_ c){                                                             
@@ -810,6 +811,11 @@ ostream& ClassTable::semant_error(Class_ c){
 
 ostream& ClassTable::semant_error(Symbol filename, tree_node *t){
     error_stream << filename << ":" << t->get_line_number() << ": ";
+    return semant_error();
+}
+
+ostream& ClassTable::semant_error(tree_node *t) {
+    error_stream << current_class_definition->get_filename() << ":" << t->get_line_number() << ": ";
     return semant_error();
 }
 
