@@ -115,7 +115,11 @@ virtual void dump_with_types(ostream& ,int) = 0;\
 virtual Symbol type_check() = 0;				\
 
 #define branch_EXTRAS                                   \
-void dump_with_types(ostream& ,int);			\
+Symbol type;                                     	\
+Symbol get_type() { return type; }                  \
+void set_type(Symbol s) { type = s; } 				\
+void dump_with_types(ostream&, int);            	\
+Symbol get_declaration_type() { return type_decl; } \
 Symbol type_check();
 
 

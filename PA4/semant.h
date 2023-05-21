@@ -46,6 +46,7 @@ public:
   bool is_type_defined(Symbol x);
   bool is_primitive(Symbol symbol);
   bool check_if_classTable_is_ok();
+  bool is_subtype(Symbol x, Symbol y);
   
   Symbol get_parent(Symbol x);
   Symbol least_upper_bound(Symbol x, Symbol y);

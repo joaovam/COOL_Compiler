@@ -298,6 +298,28 @@ bool ClassTable::inheritance_graph_dfs(Symbol symbol){
     
 }
 
+Symbol ClassTable::is_subtype(Symbol x, Symbol y){
+    if(x == No_type){
+        return true;
+    }
+
+    if(x == SELF_TYPE){
+        if(y == SELF_TYP){
+            return true;
+        }
+        else
+            x = current_class_name;
+    }
+
+    Symbol current = x;
+
+    while(current != object && current != y){
+        current = parent_index[current];
+    }
+
+    return current == y;
+}
+
 Symbol ClassTable::least_upper_bound(Symbol x, Symbol y){//returns the least commom ancestor from x and y
     std::set<Symbol> ancestors;
 
@@ -688,31 +710,286 @@ Symbol block_class::type_check() {
 /// ---------------
 /// DANNIEL
 
+Symbol branch_class::type_check() {
+    Symbol declaration_id = name;
+    Symbol declaration_type = type_decl;
+    
+    if(declaration_id == self){
+        classtable->semant_error(this) 
+            << "'self' cannot be bound in a 'branch' expression.";                
+    }
+
+    symbol_table->enterscope();
+    symbol_table->addid(declaration_id, new Symbol(declaration_type));
+
+    Symbol branch_expr_type = expr->type_check();
+    this->set_type(branch_expr_type);
+    symbol_table->exitscope();
+
+    return branch_expr_type;
+}
+
 Symbol typcase_class::type_check() {
-    // Your implementation here
+    Symbol expr_type = expr->type_check();
+
+    std::set<Symbol> branch_declaration_types;
+    Symbol branch_result_type = Object;
+
+    for(int i = cases->first(); cases->more(i); i = cases->next(i)){
+        branch_class* branch = static_cast<branch_class*>(cases->nth(i));
+        Symbol branch_declaration_type = branch->get_declaration_type();
+
+        if(branch_declaration_types.find(branch_declaration_type) != branch_declaration_types.end()){
+            classtable->semant_error(branch)
+                << "Duplicate branch type"
+                << branch_declaration_type
+                << " in case statement type.\n";
+        }
+        else
+            branch_declaration_types.insert(branch_declaration_type);
+        
+        if(i == cases->first())
+            branch_result_type = branch->type_check();
+        else
+            branch_result_type = classtable->least_upper_bound(
+                branch_result_type,
+                branch->type_check()
+            );
+    }
+
+    this->set_type(branch_result_type);
+    return branch_result_type;
 }
 
 Symbol loop_class::type_check() {
-    // Your implementation here
+    Symbol pred_type = pred->type_check();
+    Symbol body_type = body->type_check();
+
+    if (pred_type != Bool)
+    {
+        class_table->semant_error(this) 
+            << "The predicate of while must be of type Bool,got "
+            << pred_type
+            << " type instead.\n";
+    }
+
+    this->set_type(Object);
+    return Object; 
 }
 
 Symbol cond_class::type_check() {
-    // Your implementation here
+    Symbol pred_type = pred->type_check();
+    Symbol then_type = then_exp->type_check();
+    Symbol else_type = else_exp->type_check();
+
+    if(pred_type != Bool){
+        class_table->semant_error(this) 
+            << "The predicate of if must be of type Bool,got "
+            << pred_type
+            << " type instead.\n";
+    }
+
+    Symbol cond_type = classtable->least_upper_bound(then_type, else_type);
+    this->set_type(cond_type);
+    return cond_type;
 }
 
 Symbol dispatch_class::type_check() {
-    // Your implementation here
+    Symbol expr_type = expr->type_check();
+
+    if(expr_type != SELF_TYPE && !classtable->is_type_defined(expr_type)){
+        classtable->semant_error(this)
+            << "Undefined class "
+            << expr_type 
+            << " can't be dispatched.\n";
+
+        this->set_type(Object);
+        return type;
+    }
+
+    Symbol expr_type_name = expr_type == SELF_TYPE ? current_class_name : expr_type;
+    method_class* method_def = get_method_def(expr_type_name, name);
+
+    if(!method_def){
+        classtable->semant_error(this)
+            << "Undefined method "
+            << name
+            << " can't be dispatched.\n";
+        
+        this->set_type(Object);
+        return type;
+    }
+
+    Symbol declared_return_type = method_def->get_return_type();
+    Formals declared_method_args = method_def->get_formals();
+    Expressions actual_method_args = this->actual;
+
+    int n_declared_method_args = 0;
+    int n_actual_method_args = 0;
+
+    while (declared_method_args->more(n_declared_method_args)){
+        n_declared_method_args = declared_method_args->next(n_declared_method_args);
+    }
+    while (actual_method_args->more(n_actual_method_args)){
+        n_actual_method_args = actual_method_args->next(n_actual_method_args);
+    }
+
+    if(n_declared_method_args != n_actual_method_args){
+        classtable->semant_error(this)
+            << "On the dispatch of the method " << method_def->get_name()
+            << ", the number of arguments " << n_actual_method_args
+            << " is different from declared method's number of arguments " 
+            << "(" << n_declared_method_args << ")" << ".\n";
+    }
+
+    n_declared_method_args = declared_method_args->first();
+    n_actual_method_args = actual_method_args->first();
+
+    bool is_valid_dispatch = true;
+    while(
+        declared_method_args->more(n_declared_method_args) &&
+        actual_method_args->more(n_actual_method_args))
+    {
+        Expression declared_argument = declared_method_args->nth(n_declared_method_args);
+        Formal actual_argument = actual_method_args->nth(n_actual_method_args);
+
+        Symbol declared_argument_type = declared_argument->type_check();
+        Symbol actual_argument_type = actual_argument->type_check();
+
+        if(!classtable->is_subtype(actual_argument_type, declared_argument_type)){
+            is_valid_dispatch = false;
+
+            classtable->semant_error(this)
+                << "In the dispatch of the method " 
+                << method_definition->get_name() 
+                << ", type "
+                << actual_argument_type 
+                << " of provided argument " 
+                << declared_argument->get_name() 
+                << " is not compatible with the corresponding declared type " 
+                << declared_argument_type 
+                << " .\n";
+        }
+
+        n_declared_method_args = declared_method_args->next(n_declared_method_args);
+        n_actual_method_args = actual_method_args->next(n_actual_method_args);
+    }
+
+    if(!is_valid_dispatch){
+        this->set_type(Object);
+        return type;
+    }
+
+    Symbol dispatch_type = declared_return_type == SELF_TYPE ? expr_type : declared_return type;
+    this->set_type(dispatch_type);
+    return dispatch_type;
 }
 
 Symbol static_dispatch_class::type_check() {
-    // Your implementation here
+    bool is_valid_dispatch = true;
+    Symbol expr_type = expr->type_check();
+
+    if(this->type_name != SELF_TYPE && !classtable->is_type_defined(type_name)){
+        classtable->semant_error(this)
+            << "Undefined class "
+            << expr_type 
+            << " can't be static dispatched.\n";
+
+        this->set_type(Object);
+        return type;
+    }
+    if(expr_type != SELF_TYPE && !classtable->is_type_defined(expr_type)){
+        this->set_type(Object);
+        return type;
+    }
+    if(!classtable->is_subtype(expr_type, this->type_name)){
+        classtable->semant_error(this)
+            << "The expression type "
+            << expr_type
+            << " is not compatible with declared static dispatch type "
+            << this->type_name
+            << ".\n";
+        is_valid_dispatch = false;
+    }
+
+    method_class* method_def = get_method_def(type_name, name);
+
+    if(!method_def){
+        classtable->semant_error(this)
+            << "Undefined method "
+            << name
+            << " can't be static dispatched.\n";
+        
+        this->set_type(Object);
+        return type;
+    }
+
+    Symbol declared_return_type = method_def->get_return_type();
+    Formals declared_method_args = method_def->get_formals();
+    Expressions actual_method_args = this->actual;
+
+    int n_declared_method_args = 0;
+    int n_actual_method_args = 0;
+
+    while (declared_method_args->more(n_declared_method_args)){
+        n_declared_method_args = declared_method_args->next(n_declared_method_args);
+    }
+    while (actual_method_args->more(n_actual_method_args)){
+        n_actual_method_args = actual_method_args->next(n_actual_method_args);
+    }
+
+    if(n_declared_method_args != n_actual_method_args){
+        classtable->semant_error(this)
+            << "On the dispatch of the method " << method_def->get_name()
+            << ", the number of arguments " << n_actual_method_args
+            << " is different from declared method's number of arguments " 
+            << "(" << n_declared_method_args << ")" << ".\n";
+    }
+
+    n_declared_method_args = declared_method_args->first();
+    n_actual_method_args = actual_method_args->first();
+
+    bool is_valid_dispatch = true;
+    while(
+        declared_method_args->more(n_declared_method_args) &&
+        actual_method_args->more(n_actual_method_args))
+    {
+        Expression declared_argument = declared_method_args->nth(n_declared_method_args);
+        Formal actual_argument = actual_method_args->nth(n_actual_method_args);
+
+        Symbol declared_argument_type = declared_argument->type_check();
+        Symbol actual_argument_type = actual_argument->type_check();
+
+        if(!classtable->is_subtype(actual_argument_type, declared_argument_type)){
+            is_valid_dispatch = false;
+
+            classtable->semant_error(this)
+                << "In the dispatch of the method " 
+                << method_definition->get_name() 
+                << ", type "
+                << actual_argument_type 
+                << " of provided argument " 
+                << declared_argument->get_name() 
+                << " is not compatible with the corresponding declared type " 
+                << declared_argument_type 
+                << " .\n";
+        }
+
+        n_declared_method_args = declared_method_args->next(n_declared_method_args);
+        n_actual_method_args = actual_method_args->next(n_actual_method_args);
+    }
+
+    if(!is_valid_dispatch){
+        this->set_type(Object);
+        return type;
+    }
+
+    Symbol dispatch_type = declared_return_type == SELF_TYPE ? expr_type : declared_return type;
+    this->set_type(dispatch_type);
+    return dispatch_type;
 }
 
 Symbol assign_class::type_check() {
-    // Your implementation here
-}
-
-Symbol branch_class::type_check() {
     // Your implementation here
 }
 
