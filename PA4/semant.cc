@@ -566,58 +566,198 @@ method_class* get_method_def(Symbol class_name, Symbol method_name){
     return nullptr;
 }
 
-//ALICE
-
 Symbol no_expr_class::type_check() {
-    // Your implementation here
+    this->set_type(No_type);
+    return No_type;
 }
 
 Symbol isvoid_class::type_check() {
-    // Your implementation here
+    e1->type_check();
+    this->set_type(Bool);
+    return Bool;
 }
 
 Symbol new__class::type_check() {
-    // Your implementation here
+    if(type_name != SELF_TYPE && !classtable->is_type_defined(type_name))
+    {
+        this->set_type(Object);
+        classtable->semant_error(this)
+            << "Tentativa de instanciar um objeto de tipo indefinido: "
+            << type_name
+            << " .\n";
+        return Object;
+    }
+    this->set_type(type_name);
+    return type_name;
 }
 
 Symbol comp_class::type_check() {
-    // Your implementation here
+    Symbol expr_type = e1->type_check();
+    if (expr_type == Bool) {
+        this->set_type(expr_type);
+        return expr_type;
+    }
+    this->set_type(Object);
+    classtable->semant_error(this)
+        << "Argumento de 'not' possui tipo " 
+        << expr_type 
+        << " ao invés de Bool.\n";
+    return Object;
 }
 
 Symbol leq_class::type_check() {
-    // Your implementation here
+    Symbol left_type = e1->type_check();
+    Symbol right_type = e2->type_check();
+
+    if(left_type == Int && right_type == Int) {
+        this->set_type(Bool);
+        return Bool;
+    }
+    else
+    {
+        this->set_type(Object);
+        classtable->semant_error(this) 
+            << "Ambos os argumentos do operador <= deveriam ser do tipo Int"
+            << " mas os argumentos são do tipo "
+            << left_type
+            << " e "
+            << right_type
+            << ".\n";
+    }
+    return this->get_type();
 }
 
 Symbol eq_class::type_check() {
-    // Your implementation here
+    Symbol left_type = e1->type_check();
+    Symbol right_type = e2->type_check();
+    
+    bool is_left_type_primitive = left_type == Int || left_type == Bool || left_type == Str;
+    bool is_right_type_primitive = right_type == Int || right_type == Bool || right_type == Str;
+
+    if ((is_left_type_primitive && is_right_type_primitive) && left_type != right_type)
+    {
+        classtable->semant_error(this) << "Comparação não permitida com tipo primitivo.\n";
+    }
+
+    this->set_type(Bool);
+    return Bool;
 }
 
 Symbol lt_class::type_check() {
-    // Your implementation here
+    Symbol left_type = e1->type_check();
+    Symbol right_type = e2->type_check();
+
+    if(left_type == Int && right_type == Int) {
+        this->set_type(Bool);
+        return Bool;
+    }
+    else
+    {
+        this->set_type(Object);
+        classtable->semant_error(this) 
+            << "Ambos os argumentos do operador < deveriam ser do tipo Int"
+            << " mas os argumentos são do tipo "
+            << left_type
+            << " e "
+            << right_type
+            << ".\n";
+    }
+    return this->get_type();
+}
+
+Symbol neg_class::type_check() {
+    Symbol inner_expr_type = e1->type_check();
+    if (inner_expr_type != Int)
+    {
+        this->set_type(Object);
+        classtable -> semant_error(this) 
+            << "Argumento do operador '~' possui tipo " 
+            << inner_expr_type 
+            << " ao invés de Int.\n";
+        return Object;
+    }
+    this->set_type(Int);
+    return Int;
+}
+
+Symbol divide_class::type_check() {
+    Symbol left_type = e1->type_check();
+    Symbol right_type = e2->type_check();
+    if(left_type == Int && right_type == Int)
+        this->set_type(Int);
+    else
+    {
+        classtable->semant_error(this) 
+            << "Ambos os argumentos do operador / deveriam ser do tipo Int"
+            << " mas os argumentos são do tipo "
+            << left_type
+            << " e "
+            << right_type
+            << ".\n";
+        this->set_type(Object);
+    }
+    return this->get_type();
+}
+
+Symbol mul_class::type_check() {
+    Symbol left_type = e1->type_check();
+    Symbol right_type = e2->type_check();
+    if(left_type == Int && right_type == Int)
+        this->set_type(Int);
+    else
+    {
+        classtable->semant_error(this) 
+            << "Ambos os argumentos do operador * deveriam ser do tipo Int"
+            << " mas os argumentos são do tipo "
+            << left_type
+            << " e "
+            << right_type
+            << ".\n";
+        this->set_type(Object);
+    }
+    return this->get_type();
+}
+
+Symbol sub_class::type_check() {
+    Symbol left_type = e1->type_check();
+    Symbol right_type = e2->type_check();
+    if(left_type == Int && right_type == Int)
+        this->set_type(Int);
+    else
+    {
+        classtable->semant_error(this) 
+            << "Ambos os argumentos do operador - deveriam ser do tipo Int"
+            << " mas os argumentos são do tipo "
+            << left_type
+            << " e "
+            << right_type
+            << ".\n";
+        this->set_type(Object);
+    }
+    return this->get_type();
+}
+
+Symbol plus_class::type_check() {
+    Symbol left_type = e1->type_check();
+    Symbol right_type = e2->type_check();
+    if(left_type == Int && right_type == Int)
+        this->set_type(Int);
+    else
+    {
+        classtable->semant_error(this) 
+            << "Ambos os argumentos do operador + deveriam ser do tipo Int"
+            << " mas os argumentos são do tipo "
+            << left_type
+            << " e "
+            << right_type
+            << ".\n";
+        this->set_type(Object);
+    }
+    return this->get_type();
 }
 
 ///------------------------
 /// FILIPE
-
-Symbol neg_class::type_check() {
-    // Your implementation here
-}
-
-Symbol divide_class::type_check() {
-    // Your implementation here
-}
-
-Symbol mul_class::type_check() {
-    // Your implementation here
-}
-
-Symbol sub_class::type_check() {
-    // Your implementation here
-}
-
-Symbol plus_class::type_check() {
-    // Your implementation here
-}
 
 Symbol let_class::type_check() {
     // Your implementation here
