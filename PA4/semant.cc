@@ -771,12 +771,12 @@ Symbol let_class::type_check() {
     // Verificação de tipagem em uma expressão "let"
     objects_table->enterscope();
     if (identifier == self) 
-        class_table->semant_error(this) << "'self' não pode ser vinculado a uma expressão 'let'.\n";
+        classtable->semant_error(this) << "'self' não pode ser vinculado a uma expressão 'let'.\n";
 
     Symbol initial_type = init->type_check();
 
     if (type_decl != SELF_TYPE && !class_table->is_type_defined(type_decl))
-        class_table->semant_error(this) 
+        classtable->semant_error(this) 
             << "Tipo " 
             << type_decl 
             << " da variável de identificador "
@@ -784,7 +784,7 @@ Symbol let_class::type_check() {
             << " não foi definido.\n";
 
     else if (initial_type != No_type && !class_table->is_subtype_of(initial_type, type_decl))
-        class_table->semant_error(this)
+        classtable->semant_error(this)
             << "Inferência de tipo " 
             << init_type 
             << " na inicialização de " 
@@ -832,7 +832,51 @@ Symbol static_dispatch_class::type_check() {
 }
 
 Symbol assign_class::type_check() {
-    // Your implementation here
+    
+    // Verificação de tipos na associação de um valor a uma variável
+    Symbol identifier = name;
+    Expression assign_expression = expr;
+
+    if (identifier == self) {
+        classtable->semant_error(this) << "Não pode associar a 'self'.\n";
+        return Object;
+    }
+
+    Symbol* identifier_type = objects_table->lookup(identifier);
+
+    if (!identifier_type) {
+        classtable->semant_error(this) 
+            << "Tentativa de associar a identificador desconhecido " 
+            << identifier 
+            << ".\n";
+
+        this->set_type(Object);
+        return this->get_type();
+    }
+
+    Symbol assign_expression_type = assign_expression->type_check();
+
+    bool does_assign_conform_declared = class_table->is_subtype_of(
+        assign_expression_type, 
+        *identifier_type
+    );
+
+    if (!does_assign_conform_declared) {
+        classtable->semant_error(this) 
+            << "O identificador " 
+            << identifier 
+            << " foi declarado como "
+            << *identifier_type
+            << " mas foi associado com tipo incompatível "
+            << assign_expression_type
+            << ".\n";
+
+        this->set_type(Object);
+        return Object;
+    }
+
+    this->set_type(assign_expression_type);
+    return assign_expression_type;
 }
 
 Symbol branch_class::type_check() {
