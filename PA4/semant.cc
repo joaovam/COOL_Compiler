@@ -666,33 +666,37 @@ Symbol lt_class::type_check() {
 }
 
 Symbol neg_class::type_check() {
-    Symbol inner_expr_type = e1->type_check();
-    if (inner_expr_type != Int)
-    {
+    
+    //Verifica tipagem na operação de inversão de sinal ('~')
+    Symbol inner_expression_type = e1->type_check();
+    if (inner_expression_type != Int)
+    { //Erro: operador não é um inteiro
         this->set_type(Object);
         classtable -> semant_error(this) 
             << "Argumento do operador '~' possui tipo " 
-            << inner_expr_type 
+            << inner_expression_type 
             << " ao invés de Int.\n";
         return Object;
     }
-    this->set_type(Int);
+    this->set_type(Int); //Verificação completada com sucesso
     return Int;
 }
 
 Symbol divide_class::type_check() {
-    Symbol left_type = e1->type_check();
-    Symbol right_type = e2->type_check();
-    if(left_type == Int && right_type == Int)
-        this->set_type(Int);
+	
+    //Verifica tipagem de operadores de uma divisão ('/')
+    Symbol left_operator_type = e1->type_check();
+    Symbol right_operator_type = e2->type_check();
+    if(left_operator_type == Int && right_operator_type == Int)
+        this->set_type(Int); //Sucesso
     else
-    {
+    { //Erro: pelo menos um dos operadores não é inteiro
         classtable->semant_error(this) 
             << "Ambos os argumentos do operador / deveriam ser do tipo Int"
             << " mas os argumentos são do tipo "
-            << left_type
+            << left_operator_type
             << " e "
-            << right_type
+            << right_operator_type
             << ".\n";
         this->set_type(Object);
     }
@@ -700,18 +704,20 @@ Symbol divide_class::type_check() {
 }
 
 Symbol mul_class::type_check() {
-    Symbol left_type = e1->type_check();
-    Symbol right_type = e2->type_check();
+	
+    //Verifica tipagem de operadores de uma multiplicação ('*')
+    Symbol left_operator_type = e1->type_check();
+    Symbol right_operator_type = e2->type_check();
     if(left_type == Int && right_type == Int)
-        this->set_type(Int);
+        this->set_type(Int); //Sucesso
     else
-    {
+    { //Erro: pelo menos um dos operadores não é inteiro
         classtable->semant_error(this) 
             << "Ambos os argumentos do operador * deveriam ser do tipo Int"
             << " mas os argumentos são do tipo "
-            << left_type
+            << left_operator_type
             << " e "
-            << right_type
+            << right_operator_type
             << ".\n";
         this->set_type(Object);
     }
@@ -719,18 +725,20 @@ Symbol mul_class::type_check() {
 }
 
 Symbol sub_class::type_check() {
-    Symbol left_type = e1->type_check();
-    Symbol right_type = e2->type_check();
-    if(left_type == Int && right_type == Int)
-        this->set_type(Int);
+	
+    //Verifica tipagem de operadores de uma subtração ('-')
+    Symbol left_operator_type = e1->type_check();
+    Symbol right_operator_type = e2->type_check();
+    if(left_operator_type == Int && right_operator_type == Int)
+        this->set_type(Int); //Sucesso
     else
-    {
+    { //Erro: pelo menos um dos operadores não é inteiro
         classtable->semant_error(this) 
             << "Ambos os argumentos do operador - deveriam ser do tipo Int"
             << " mas os argumentos são do tipo "
-            << left_type
+            << left_operator_type
             << " e "
-            << right_type
+            << right_operator_type
             << ".\n";
         this->set_type(Object);
     }
@@ -738,33 +746,66 @@ Symbol sub_class::type_check() {
 }
 
 Symbol plus_class::type_check() {
-    Symbol left_type = e1->type_check();
-    Symbol right_type = e2->type_check();
-    if(left_type == Int && right_type == Int)
-        this->set_type(Int);
+	
+    //Verifica tipagem de operadores de uma adição ('+')
+    Symbol left_operator_type = e1->type_check();
+    Symbol right_operator_type = e2->type_check();
+    if(left_operator_type == Int && right_operator_type == Int)
+        this->set_type(Int); //Sucesso
     else
-    {
+    { //Erro: pelo menos um dos operadores não é inteiro
         classtable->semant_error(this) 
             << "Ambos os argumentos do operador + deveriam ser do tipo Int"
             << " mas os argumentos são do tipo "
-            << left_type
+            << left_operator_type
             << " e "
-            << right_type
+            << right_operator_type
             << ".\n";
         this->set_type(Object);
     }
     return this->get_type();
 }
 
-///------------------------
-/// FILIPE
-
 Symbol let_class::type_check() {
-    // Your implementation here
+    
+    // Verificação de tipagem em uma expressão "let"
+    objects_table->enterscope();
+    if (identifier == self) 
+        class_table->semant_error(this) << "'self' não pode ser vinculado a uma expressão 'let'.\n";
+
+    Symbol initial_type = init->type_check();
+
+    if (type_decl != SELF_TYPE && !class_table->is_type_defined(type_decl))
+        class_table->semant_error(this) 
+            << "Tipo " 
+            << type_decl 
+            << " da variável de identificador "
+            << identifier 
+            << " não foi definido.\n";
+
+    else if (initial_type != No_type && !class_table->is_subtype_of(initial_type, type_decl))
+        class_table->semant_error(this)
+            << "Inferência de tipo " 
+            << init_type 
+            << " na inicialização de " 
+            << identifier 
+            << " não é compatível com tipo declarado " 
+            << type_decl << ".\n";
+            
+    objects_table->addid(identifier, new Symbol(type_decl));
+    this->set_type(body->type_check()); //Checagem do interior da expressão let
+    objects_table->exitscope();
+    return type;
 }
 
 Symbol block_class::type_check() {
-    // Your implementation here
+    
+    // Checagem de tipo de um bloco de expressões
+    Symbol last_body_expression_type = Object;
+    for (int i = body->first(); body->more(i); i = body->next(i))
+        last_body_expr_type = body->nth(i)->type_check(); //Verifica a tipagem de cada operação dentro do bloco
+    this->set_type(last_body_expression_type);
+    return last_body_expression_type;
 }
 
 /// ---------------
