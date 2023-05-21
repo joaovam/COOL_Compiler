@@ -624,6 +624,8 @@ method_class* get_method_def(Symbol class_name, Symbol method_name){
     return nullptr;
 }
 
+//ALICE
+
 Symbol no_expr_class::type_check() {
     // Your implementation here
 }
@@ -652,6 +654,9 @@ Symbol lt_class::type_check() {
     // Your implementation here
 }
 
+///------------------------
+/// FILIPE
+
 Symbol neg_class::type_check() {
     // Your implementation here
 }
@@ -679,6 +684,9 @@ Symbol let_class::type_check() {
 Symbol block_class::type_check() {
     // Your implementation here
 }
+
+/// ---------------
+/// DANNIEL
 
 Symbol typcase_class::type_check() {
     // Your implementation here
