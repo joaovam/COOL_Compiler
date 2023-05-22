@@ -968,13 +968,15 @@ Symbol dispatch_class::type_check() {
     n_declared_method_args = declared_method_args->first();
     n_actual_method_args = actual_method_args->first();
 
+    Formal declared_argument;
+    Expression actual_argument;
     bool is_valid_dispatch = true;
     while(
         declared_method_args->more(n_declared_method_args) &&
         actual_method_args->more(n_actual_method_args))
     {
-        Formal declared_argument = declared_method_args->nth(n_declared_method_args);
-        Expression actual_argument = actual_method_args->nth(n_actual_method_args);
+        declared_argument = declared_method_args->nth(n_declared_method_args);
+        actual_argument = actual_method_args->nth(n_actual_method_args);
 
         Symbol declared_argument_type = declared_argument->type_check();
         Symbol actual_argument_type = actual_argument->type_check();
@@ -1072,13 +1074,15 @@ Symbol static_dispatch_class::type_check() {
     n_declared_method_args = declared_method_args->first();
     n_actual_method_args = actual_method_args->first();
 
+    Expression declared_argument;
+    Formal actual_argument;
     bool is_valid_dispatch = true;
     while(
         declared_method_args->more(n_declared_method_args) &&
         actual_method_args->more(n_actual_method_args))
     {
-        Expression declared_argument = declared_method_args->nth(n_declared_method_args);
-        Formal actual_argument = actual_method_args->nth(n_actual_method_args);
+        declared_argument = declared_method_args->nth(n_declared_method_args);
+        actual_argument = actual_method_args->nth(n_actual_method_args);
 
         Symbol declared_argument_type = declared_argument->type_check();
         Symbol actual_argument_type = actual_argument->type_check();
