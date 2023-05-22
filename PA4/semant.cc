@@ -813,7 +813,7 @@ Symbol plus_class::type_check() {
 Symbol let_class::type_check() {
     
     // Verificação de tipagem em uma expressão "let"
-    objects_table->enterscope();
+    symbol_table->enterscope();
     if (identifier == self) 
         classtable->semant_error(this) << "'self' não pode ser vinculado a uma expressão 'let'.\n";
 
@@ -836,9 +836,9 @@ Symbol let_class::type_check() {
             << " não é compatível com tipo declarado " 
             << type_decl << ".\n";
             
-    objects_table->addid(identifier, new Symbol(type_decl));
+    symbol_table->addid(identifier, new Symbol(type_decl));
     this->set_type(body->type_check()); //Checagem do interior da expressão let
-    objects_table->exitscope();
+    symbol_table->exitscope();
     return type;
 }
 
@@ -1134,6 +1134,101 @@ Symbol static_dispatch_class::type_check() {
     return dispatch_type;
 }
 
+Symbol method_class::type_check(){
+    symbol_table->enterscope();
+    std::set<Symbol> defined_arguments;
+
+    for(int i = formals->first(); formals->more(i); i = formals->next(i)){
+        Formal arg = formals->nth(i);
+        Symbol arg_name = arg->get_name();
+        Symbol arg_type = arg->get_type();
+
+        if(arg_name == self)
+            classtable->semant_error(arg)
+                << "'self' cannot be the name of a method argument.\n";
+        else if(defined_arguments.find(arg_name) != defined_arguments.end())
+            classtable->semant_error(arg)
+                << "The argument "
+                << arg_name
+                << "in the method "
+                << get_name()
+                << "has already been defined.\n";
+        else
+            defined_arguments.insert(arg_name);
+
+        if(classtable->is_type_defined(arg_type))
+            symbol_table->addid(arg_name, new Symbol(arg_type));
+        else
+            classtable->semant_error(arg)
+                << "The argument "
+                << arg_name
+                << "in the method "
+                << get_name()
+                << "has type undefined "
+                << arg_type
+                << ".\n";
+    }
+
+    Symbol declared_return_type = get_return_type();
+    Symbol actual_return_type = this->expr->type_check();
+    if(!classtable->is_subtype(actual_return_type, declared_return_type)){
+        classtable->semant_error(arg)
+            << "O tipo de retorno inferido "
+            << actual_return_type
+            << " do metodo "
+            << get_name()
+            << " não é compativel com o tipo de retorno declarado "
+            << declared_return_type
+            << ".\n";
+    }
+
+    symbol_table->exitscope();
+    return this->get_return_type();
+}
+
+Symbol attr_class::type_check(){
+    Expression init_expr = this->get_init_expr();
+    Symbol init_expr_type = init_expr->type_check();
+    init_expr_type = init_expr_type == SELF_TYPE ? current_class_name : init_expr_type;
+
+    // Checando se a atribuição tem um init
+    if(dynamic_cast<const no_expr_class*>(init_expr) != nullptr){
+        return this->get_type();
+    }
+
+    // Garatindo que não haverá atributos nomeados 'self'
+    if(this->get_name() == self){
+        classtable->semant_error(this)
+            << "'self' cannot be the name of an attribute.\n";
+        return this->get_type();
+    }
+
+    // Checando se o tipo do atributo foi definido.
+    if(classtable->is_type_defined(this->get_type())){
+        classtable->semant_error(init_expr)
+            << "Atributo "
+            << this->get_name()
+            << " é definido pelo tipo indefinido "
+            << this->get_type()
+            << ".\n";
+        return this->get_type();
+    }
+
+    bool matching_types = classtable->is_subtype(init_expr_type, this->get_type());
+
+    if(!matching_types){
+        classtable->semant_error(init_expr)
+            << "Atributo "
+            << this->get_name()
+            << " é do tipo "
+            << this->get_type()
+            << " porém a expressão de inicialização é do tipo "
+            << init_expr_type
+            << ".\n";
+    }
+    return this->get_type();
+}
+
 Symbol assign_class::type_check() {
     
     // Verificação de tipos na associação de um valor a uma variável
@@ -1145,7 +1240,7 @@ Symbol assign_class::type_check() {
         return Object;
     }
 
-    Symbol* identifier_type = objects_table->lookup(identifier);
+    Symbol* identifier_type = symbol_table->lookup(identifier);
 
     if (!identifier_type) {
         classtable->semant_error(this) 
