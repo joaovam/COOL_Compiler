@@ -534,7 +534,7 @@ void type_check(Class_ next_class) {
 }
 
 Symbol object_class::type_check() {
-    if (name == self) {
+/*     if (name == self) {
         this->set_type(SELF_TYPE);
         return SELF_TYPE;
     }
@@ -549,7 +549,7 @@ Symbol object_class::type_check() {
     classtable->semant_error(this)
         << "O objeto "
         << name
-        << " é indefinido nesse escopo.\n";
+        << " é indefinido nesse escopo.\n"; */
     return Object;
 }
 
@@ -583,13 +583,13 @@ Symbol no_expr_class::type_check() {
 }
 
 Symbol isvoid_class::type_check() {
-    e1->type_check();
+    /* e1->type_check(); */
     this->set_type(Bool);
     return Bool;
 }
 
 Symbol new__class::type_check() {
-    if(type_name != SELF_TYPE && !classtable->is_type_defined(type_name))
+    /* if(type_name != SELF_TYPE && !classtable->is_type_defined(type_name))
     {
         this->set_type(Object);
         classtable->semant_error(this)
@@ -597,13 +597,13 @@ Symbol new__class::type_check() {
             << type_name
             << " .\n";
         return Object;
-    }
+    } */
     this->set_type(type_name);
     return type_name;
 }
 
 Symbol comp_class::type_check() {
-    Symbol expr_type = e1->type_check();
+    /* Symbol expr_type = e1->type_check();
     if (expr_type == Bool) {
         this->set_type(expr_type);
         return expr_type;
@@ -612,12 +612,12 @@ Symbol comp_class::type_check() {
     classtable->semant_error(this)
         << "Argumento de 'not' possui tipo " 
         << expr_type 
-        << " ao invés de Bool.\n";
+        << " ao invés de Bool.\n"; */
     return Object;
 }
 
 Symbol leq_class::type_check() {
-    Symbol left_type = e1->type_check();
+    /* Symbol left_type = e1->type_check();
     Symbol right_type = e2->type_check();
 
     if(left_type == Int && right_type == Int) {
@@ -634,12 +634,12 @@ Symbol leq_class::type_check() {
             << " e "
             << right_type
             << ".\n";
-    }
+    } */
     return this->get_type();
 }
 
 Symbol eq_class::type_check() {
-    Symbol left_type = e1->type_check();
+    /* Symbol left_type = e1->type_check();
     Symbol right_type = e2->type_check();
     
     bool is_left_type_primitive = left_type == Int || left_type == Bool || left_type == Str;
@@ -650,12 +650,12 @@ Symbol eq_class::type_check() {
         classtable->semant_error(this) << "Comparação não permitida com tipo primitivo.\n";
     }
 
-    this->set_type(Bool);
+    this->set_type(Bool); */
     return Bool;
 }
 
 Symbol lt_class::type_check() {
-    Symbol left_type = e1->type_check();
+    /* Symbol left_type = e1->type_check();
     Symbol right_type = e2->type_check();
 
     if(left_type == Int && right_type == Int) {
@@ -672,7 +672,7 @@ Symbol lt_class::type_check() {
             << " e "
             << right_type
             << ".\n";
-    }
+    } */
     return this->get_type();
 }
 
