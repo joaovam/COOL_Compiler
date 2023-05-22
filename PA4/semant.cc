@@ -805,7 +805,7 @@ Symbol let_class::type_check() {
             << identifier 
             << " não foi definido.\n";
 
-    else if (initial_type != No_type && !classtable->is_subtype_of(initial_type, type_decl))
+    else if (initial_type != No_type && !classtable->is_subtype(initial_type, type_decl))
         classtable->semant_error(this)
             << "Inferência de tipo " 
             << initial_type 
@@ -968,13 +968,15 @@ Symbol dispatch_class::type_check() {
     n_declared_method_args = declared_method_args->first();
     n_actual_method_args = actual_method_args->first();
 
+    Formal declared_argument;
+    Expression actual_argument;
     bool is_valid_dispatch = true;
     while(
         declared_method_args->more(n_declared_method_args) &&
         actual_method_args->more(n_actual_method_args))
     {
-        Formal declared_argument = declared_method_args->nth(n_declared_method_args);
-        Expression actual_argument = actual_method_args->nth(n_actual_method_args);
+        declared_method_args->nth(n_declared_method_args);
+        actual_method_args->nth(n_actual_method_args);
 
         Symbol declared_argument_type = declared_argument->type_check();
         Symbol actual_argument_type = actual_argument->type_check();
@@ -984,7 +986,7 @@ Symbol dispatch_class::type_check() {
 
             classtable->semant_error(this)
                 << "In the dispatch of the method " 
-                << method_definition->get_name() 
+                << method_def->get_name() 
                 << ", type "
                 << actual_argument_type 
                 << " of provided argument " 
@@ -1003,7 +1005,7 @@ Symbol dispatch_class::type_check() {
         return type;
     }
 
-    Symbol dispatch_type = declared_return_type == SELF_TYPE ? expr_type : declared_return type;
+    Symbol dispatch_type = declared_return_type == SELF_TYPE ? expr_type : declared_return_type;
     this->set_type(dispatch_type);
     return dispatch_type;
 }
@@ -1072,13 +1074,14 @@ Symbol static_dispatch_class::type_check() {
     n_declared_method_args = declared_method_args->first();
     n_actual_method_args = actual_method_args->first();
 
-    bool is_valid_dispatch = true;
+    Formal declared_argument;
+    Expression actual_argument;
     while(
         declared_method_args->more(n_declared_method_args) &&
         actual_method_args->more(n_actual_method_args))
     {
-        Expression declared_argument = declared_method_args->nth(n_declared_method_args);
-        Formal actual_argument = actual_method_args->nth(n_actual_method_args);
+        declared_method_args->nth(n_declared_method_args);
+        actual_method_args->nth(n_actual_method_args);
 
         Symbol declared_argument_type = declared_argument->type_check();
         Symbol actual_argument_type = actual_argument->type_check();
@@ -1088,7 +1091,7 @@ Symbol static_dispatch_class::type_check() {
 
             classtable->semant_error(this)
                 << "In the dispatch of the method " 
-                << method_definition->get_name() 
+                << method_def->get_name() 
                 << ", type "
                 << actual_argument_type 
                 << " of provided argument " 
@@ -1107,7 +1110,7 @@ Symbol static_dispatch_class::type_check() {
         return type;
     }
 
-    Symbol dispatch_type = declared_return_type == SELF_TYPE ? expr_type : declared_return type;
+    Symbol dispatch_type = declared_return_type == SELF_TYPE ? expr_type : declared_return_type;
     this->set_type(dispatch_type);
     return dispatch_type;
 }
@@ -1150,7 +1153,7 @@ Symbol method_class::type_check(){
     Symbol declared_return_type = get_return_type();
     Symbol actual_return_type = this->expr->type_check();
     if(!classtable->is_subtype(actual_return_type, declared_return_type)){
-        classtable->semant_error(arg)
+        classtable->semant_error(this)
             << "O tipo de retorno inferido "
             << actual_return_type
             << " do metodo "
@@ -1232,7 +1235,7 @@ Symbol assign_class::type_check() {
 
     Symbol assign_expression_type = assign_expression->type_check();
 
-    bool does_assign_conform_declared = classtable->is_subtype_of(
+    bool does_assign_conform_declared = classtable->is_subtype(
         assign_expression_type, 
         *identifier_type
     );
