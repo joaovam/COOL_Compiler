@@ -730,7 +730,7 @@ Symbol mul_class::type_check() {
     //Verifica tipagem de operadores de uma multiplicação ('*')
     Symbol left_operator_type = e1->type_check();
     Symbol right_operator_type = e2->type_check();
-    if(left_type == Int && right_type == Int)
+    if(left_operator_type == Int && right_operator_type == Int)
         this->set_type(Int); //Sucesso
     else
     { //Erro: pelo menos um dos operadores não é inteiro
@@ -797,7 +797,7 @@ Symbol let_class::type_check() {
 
     Symbol initial_type = init->type_check();
 
-    if (type_decl != SELF_TYPE && !class_table->is_type_defined(type_decl))
+    if (type_decl != SELF_TYPE && !classtable->is_type_defined(type_decl))
         classtable->semant_error(this) 
             << "Tipo " 
             << type_decl 
@@ -805,10 +805,10 @@ Symbol let_class::type_check() {
             << identifier 
             << " não foi definido.\n";
 
-    else if (initial_type != No_type && !class_table->is_subtype_of(initial_type, type_decl))
+    else if (initial_type != No_type && !classtable->is_subtype_of(initial_type, type_decl))
         classtable->semant_error(this)
             << "Inferência de tipo " 
-            << init_type 
+            << initial_type 
             << " na inicialização de " 
             << identifier 
             << " não é compatível com tipo declarado " 
@@ -825,7 +825,7 @@ Symbol block_class::type_check() {
     // Checagem de tipo de um bloco de expressões
     Symbol last_body_expression_type = Object;
     for (int i = body->first(); body->more(i); i = body->next(i))
-        last_body_expr_type = body->nth(i)->type_check(); //Verifica a tipagem de cada operação dentro do bloco
+        last_body_expression_type = body->nth(i)->type_check(); //Verifica a tipagem de cada operação dentro do bloco
     this->set_type(last_body_expression_type);
     return last_body_expression_type;
 }
@@ -890,7 +890,7 @@ Symbol loop_class::type_check() {
 
     if (pred_type != Bool)
     {
-        class_table->semant_error(this) 
+        classtable->semant_error(this) 
             << "The predicate of while must be of type Bool,got "
             << pred_type
             << " type instead.\n";
@@ -906,7 +906,7 @@ Symbol cond_class::type_check() {
     Symbol else_type = else_exp->type_check();
 
     if(pred_type != Bool){
-        class_table->semant_error(this) 
+        classtable->semant_error(this) 
             << "The predicate of if must be of type Bool,got "
             << pred_type
             << " type instead.\n";
@@ -973,8 +973,8 @@ Symbol dispatch_class::type_check() {
         declared_method_args->more(n_declared_method_args) &&
         actual_method_args->more(n_actual_method_args))
     {
-        Expression declared_argument = declared_method_args->nth(n_declared_method_args);
-        Formal actual_argument = actual_method_args->nth(n_actual_method_args);
+        Formal declared_argument = declared_method_args->nth(n_declared_method_args);
+        Expression actual_argument = actual_method_args->nth(n_actual_method_args);
 
         Symbol declared_argument_type = declared_argument->type_check();
         Symbol actual_argument_type = actual_argument->type_check();
@@ -1232,7 +1232,7 @@ Symbol assign_class::type_check() {
 
     Symbol assign_expression_type = assign_expression->type_check();
 
-    bool does_assign_conform_declared = class_table->is_subtype_of(
+    bool does_assign_conform_declared = classtable->is_subtype_of(
         assign_expression_type, 
         *identifier_type
     );
