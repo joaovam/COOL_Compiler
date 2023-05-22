@@ -975,8 +975,8 @@ Symbol dispatch_class::type_check() {
         declared_method_args->more(n_declared_method_args) &&
         actual_method_args->more(n_actual_method_args))
     {
-        declared_method_args->nth(n_declared_method_args);
-        actual_method_args->nth(n_actual_method_args);
+        declared_argument = declared_method_args->nth(n_declared_method_args);
+        actual_argument = actual_method_args->nth(n_actual_method_args);
 
         Symbol declared_argument_type = declared_argument->get_type();
         Symbol actual_argument_type = actual_argument->type_check();
@@ -1080,8 +1080,8 @@ Symbol static_dispatch_class::type_check() {
         declared_method_args->more(n_declared_method_args) &&
         actual_method_args->more(n_actual_method_args))
     {
-        declared_method_args->nth(n_declared_method_args);
-        actual_method_args->nth(n_actual_method_args);
+        declared_argument = declared_method_args->nth(n_declared_method_args);
+        actual_argument = actual_method_args->nth(n_actual_method_args);
 
         Symbol declared_argument_type = declared_argument->get_type();
         Symbol actual_argument_type = actual_argument->type_check();
