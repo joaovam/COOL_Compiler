@@ -677,7 +677,7 @@ Symbol lt_class::type_check() {
 }
 
 Symbol neg_class::type_check() {
-    
+/*     
     //Verifica tipagem na operação de inversão de sinal ('~')
     Symbol inner_expression_type = e1->type_check();
     if (inner_expression_type != Int)
@@ -689,13 +689,13 @@ Symbol neg_class::type_check() {
             << " ao invés de Int.\n";
         return Object;
     }
-    this->set_type(Int); //Verificação completada com sucesso
+    this->set_type(Int); //Verificação completada com sucesso */
     return Int;
 }
 
 Symbol divide_class::type_check() {
 	
-    //Verifica tipagem de operadores de uma divisão ('/')
+/*     //Verifica tipagem de operadores de uma divisão ('/')
     Symbol left_operator_type = e1->type_check();
     Symbol right_operator_type = e2->type_check();
     if(left_operator_type == Int && right_operator_type == Int)
@@ -710,12 +710,12 @@ Symbol divide_class::type_check() {
             << right_operator_type
             << ".\n";
         this->set_type(Object);
-    }
+    } */
     return this->get_type();
 }
 
 Symbol mul_class::type_check() {
-	
+/* 	
     //Verifica tipagem de operadores de uma multiplicação ('*')
     Symbol left_operator_type = e1->type_check();
     Symbol right_operator_type = e2->type_check();
@@ -731,12 +731,12 @@ Symbol mul_class::type_check() {
             << right_operator_type
             << ".\n";
         this->set_type(Object);
-    }
+    } */
     return this->get_type();
 }
 
 Symbol sub_class::type_check() {
-	
+/* 	
     //Verifica tipagem de operadores de uma subtração ('-')
     Symbol left_operator_type = e1->type_check();
     Symbol right_operator_type = e2->type_check();
@@ -752,12 +752,12 @@ Symbol sub_class::type_check() {
             << right_operator_type
             << ".\n";
         this->set_type(Object);
-    }
+    } */
     return this->get_type();
 }
 
 Symbol plus_class::type_check() {
-	
+/* 	
     //Verifica tipagem de operadores de uma adição ('+')
     Symbol left_operator_type = e1->type_check();
     Symbol right_operator_type = e2->type_check();
@@ -773,13 +773,13 @@ Symbol plus_class::type_check() {
             << right_operator_type
             << ".\n";
         this->set_type(Object);
-    }
+    } */
     return this->get_type();
 }
 
 Symbol let_class::type_check() {
     
-    // Verificação de tipagem em uma expressão "let"
+/*     // Verificação de tipagem em uma expressão "let"
     symbol_table->enterscope();
     if (identifier == self) 
         classtable->semant_error(this) << "'self' não pode ser vinculado a uma expressão 'let'.\n";
@@ -805,7 +805,7 @@ Symbol let_class::type_check() {
             
     symbol_table->addid(identifier, new Symbol(type_decl));
     this->set_type(body->type_check()); //Checagem do interior da expressão let
-    symbol_table->exitscope();
+    symbol_table->exitscope(); */
     return type;
 }
 
@@ -813,9 +813,9 @@ Symbol block_class::type_check() {
     
     // Checagem de tipo de um bloco de expressões
     Symbol last_body_expression_type = Object;
-    for (int i = body->first(); body->more(i); i = body->next(i))
+/*     for (int i = body->first(); body->more(i); i = body->next(i))
         last_body_expression_type = body->nth(i)->type_check(); //Verifica a tipagem de cada operação dentro do bloco
-    this->set_type(last_body_expression_type);
+    this->set_type(last_body_expression_type); */
     return last_body_expression_type;
 }
 
@@ -823,7 +823,7 @@ Symbol block_class::type_check() {
 /// DANNIEL
 
 Symbol branch_class::type_check() {
-    Symbol declaration_id = name;
+/*     Symbol declaration_id = name;
     Symbol declaration_type = type_decl;
     
     if(declaration_id == self){
@@ -838,16 +838,17 @@ Symbol branch_class::type_check() {
     this->set_type(branch_expr_type);
     symbol_table->exitscope();
 
-    return branch_expr_type;
+    return branch_expr_type; */
+    return Object;
 }
 
 Symbol typcase_class::type_check() {
-    Symbol expr_type = expr->type_check();
+   // Symbol expr_type = expr->type_check();
 
     std::set<Symbol> branch_declaration_types;
     Symbol branch_result_type = Object;
 
-    for(int i = cases->first(); cases->more(i); i = cases->next(i)){
+    /* for(int i = cases->first(); cases->more(i); i = cases->next(i)){
         branch_class* branch = static_cast<branch_class*>(cases->nth(i));
         Symbol branch_declaration_type = branch->get_declaration_type();
 
@@ -869,12 +870,12 @@ Symbol typcase_class::type_check() {
             );
     }
 
-    this->set_type(branch_result_type);
+    this->set_type(branch_result_type); */
     return branch_result_type;
 }
 
 Symbol loop_class::type_check() {
-    Symbol pred_type = pred->type_check();
+/*     Symbol pred_type = pred->type_check();
     Symbol body_type = body->type_check();
 
     if (pred_type != Bool)
@@ -885,12 +886,12 @@ Symbol loop_class::type_check() {
             << " type instead.\n";
     }
 
-    this->set_type(Object);
+    this->set_type(Object); */
     return Object; 
 }
 
 Symbol cond_class::type_check() {
-    Symbol pred_type = pred->type_check();
+/*     Symbol pred_type = pred->type_check();
     Symbol then_type = then_exp->type_check();
     Symbol else_type = else_exp->type_check();
 
@@ -903,11 +904,12 @@ Symbol cond_class::type_check() {
 
     Symbol cond_type = classtable->least_upper_bound(then_type, else_type);
     this->set_type(cond_type);
-    return cond_type;
+    return cond_type; */
+    return Object;
 }
 
 Symbol dispatch_class::type_check() {
-    Symbol expr_type = expr->type_check();
+/*     Symbol expr_type = expr->type_check();
 
     if(expr_type != SELF_TYPE && !classtable->is_type_defined(expr_type)){
         classtable->semant_error(this)
@@ -996,11 +998,12 @@ Symbol dispatch_class::type_check() {
 
     Symbol dispatch_type = declared_return_type == SELF_TYPE ? expr_type : declared_return_type;
     this->set_type(dispatch_type);
-    return dispatch_type;
+    return dispatch_type; */
+    return Object;
 }
 
 Symbol static_dispatch_class::type_check() {
-    bool is_valid_dispatch = true;
+    /* bool is_valid_dispatch = true;
     Symbol expr_type = expr->type_check();
 
     if(this->type_name != SELF_TYPE && !classtable->is_type_defined(type_name)){
@@ -1101,11 +1104,12 @@ Symbol static_dispatch_class::type_check() {
 
     Symbol dispatch_type = declared_return_type == SELF_TYPE ? expr_type : declared_return_type;
     this->set_type(dispatch_type);
-    return dispatch_type;
+    return dispatch_type; */
+    return Object;
 }
 
 Symbol method_class::type_check(){
-    symbol_table->enterscope();
+   /*  symbol_table->enterscope();
     std::set<Symbol> defined_arguments;
 
     for(int i = formals->first(); formals->more(i); i = formals->next(i)){
@@ -1152,12 +1156,12 @@ Symbol method_class::type_check(){
             << ".\n";
     }
 
-    symbol_table->exitscope();
+    symbol_table->exitscope(); */
     return this->get_return_type();
 }
 
 Symbol attr_class::type_check(){
-    Expression init_expr = this->get_init_expr();
+   /*  Expression init_expr = this->get_init_expr();
     Symbol init_expr_type = init_expr->type_check();
     init_expr_type = init_expr_type == SELF_TYPE ? current_class_name : init_expr_type;
 
@@ -1195,12 +1199,12 @@ Symbol attr_class::type_check(){
             << " porém a expressão de inicialização é do tipo "
             << init_expr_type
             << ".\n";
-    }
+    } */
     return this->get_type();
 }
 
 Symbol assign_class::type_check() {
-    
+ /*    
     // Verificação de tipos na associação de um valor a uma variável
     Symbol identifier = name;
     Expression assign_expression = expr;
@@ -1244,7 +1248,8 @@ Symbol assign_class::type_check() {
     }
 
     this->set_type(assign_expression_type);
-    return assign_expression_type;
+    return assign_expression_type; */
+    return Object;
 }
 
 Symbol int_const_class::type_check() {
