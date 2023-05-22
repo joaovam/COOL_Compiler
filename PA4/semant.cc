@@ -250,13 +250,13 @@ bool ClassTable::inheritance_graph_dfs(Symbol symbol){
     return true;
 }
 
-Symbol ClassTable::is_subtype(Symbol x, Symbol y){
+bool ClassTable::is_subtype(Symbol x, Symbol y){
     if(x == No_type){
         return true;
     }
 
     if(x == SELF_TYPE){
-        if(y == SELF_TYP){
+        if(y == SELF_TYPE){
             return true;
         }
         else
@@ -265,29 +265,7 @@ Symbol ClassTable::is_subtype(Symbol x, Symbol y){
 
     Symbol current = x;
 
-    while(current != object && current != y){
-        current = parent_index[current];
-    }
-
-    return current == y;
-}
-
-Symbol ClassTable::is_subtype(Symbol x, Symbol y){
-    if(x == No_type){
-        return true;
-    }
-
-    if(x == SELF_TYPE){
-        if(y == SELF_TYP){
-            return true;
-        }
-        else
-            x = current_class_name;
-    }
-
-    Symbol current = x;
-
-    while(current != object && current != y){
+    while(current != Object && current != y){
         current = parent_index[current];
     }
 
