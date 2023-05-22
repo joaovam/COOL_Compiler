@@ -392,7 +392,6 @@ void register_class_methods_and_attrs(Class_ definition){
 
 void build_attribute_scopes(Class_ current_class){ // Adiciona cada atributo para o escopo da classe, incluindo os herdados
     symbol_table->enterscope();
-    symbol_table->addid(self, new Symbol(current_class_definition->get_name()));
 
     std::map<Symbol, attr_class*> attrs = retrieve_attrs_from_class(current_class);
     for(const auto &x : attrs) {
@@ -428,10 +427,6 @@ void process_attributes(Class_ current_class, attr_class* attr){ // Checa se atr
 void process_method(Class_ current_class, method_class* original_method, method_class* parent_method){ // Checagem de metodos para caso de Override
     // Verificando se há metodo de mesmo nome na classe pai.
     if (parent_method == nullptr) return;
-
-    Symbol parent_name = classtable->get_parent(current_class->get_name());
-    if (parent_name == No_type)
-        return;
 
     // Garatindo que o metodo sobrescrito mantém o mesmo tipo de retorno.
     if (original_method->get_return_type() != parent_method->get_return_type()){
@@ -489,6 +484,10 @@ void process_method(Class_ current_class, method_class* original_method, method_
         n_parent_method_args = parent_method_args->next(n_parent_method_args);
     }
 
+    Symbol parent_name = classtable->get_parent(current_class->get_name());
+    if (parent_name == No_type)
+        return;
+
     Class_ parent_class_definition = classtable->class_index[parent_name];
 
     process_method(
@@ -508,6 +507,9 @@ void type_check(Class_ next_class) {
     current_class_attrs = retrieve_attrs_from_class(next_class);
 
     symbol_table = new SymbolTable<Symbol, Symbol>();
+    symbol_table->enterscope();
+    symbol_table->addid(self, new Symbol(current_class_definition->get_name()));
+
     build_attribute_scopes(next_class);
     
     for (const auto &x : current_class_methods) {
@@ -527,21 +529,8 @@ void type_check(Class_ next_class) {
     for (const auto &x : current_class_methods) {
         x.second->type_check();
     }
-}
 
-Symbol int_const_class::type_check() {
-    this->set_type(Int);
-    return Int;
-}
-
-Symbol bool_const_class::type_check() {
-    this->set_type(Bool);
-    return Bool;
-}
-
-Symbol string_const_class::type_check() {
-    this->set_type(Str);
-    return Str;
+    symbol_table->exitscope();
 }
 
 Symbol object_class::type_check() {
@@ -1258,6 +1247,20 @@ Symbol assign_class::type_check() {
     return assign_expression_type;
 }
 
+Symbol int_const_class::type_check() {
+    this->set_type(Int);
+    return Int;
+}
+
+Symbol bool_const_class::type_check() {
+    this->set_type(Bool);
+    return Bool;
+}
+
+Symbol string_const_class::type_check() {
+    this->set_type(Str);
+    return Str;
+}
 ////////////////////////////////////////////////////////////////////
 //
 // semant_error is an overloaded function for reporting errors
@@ -1316,6 +1319,7 @@ void program_class::semant(){
 
     /* ClassTable constructor may do some semantic analysis */
     classtable = new ClassTable(classes);
+    symbol_table = new SymbolTable<Symbol, Symbol>();
 
     /* some semantic analysis code may go here */
     if(!classtable->install_custom_classes(classes)){
@@ -1330,12 +1334,16 @@ void program_class::semant(){
     if(!classtable->check_if_classTable_is_ok())
         error();
 
+    // Sai com erro em caso de problemas semânticos
+    if(classtable->errors())
+        error(); 
+
     // Regitrando todos os métodos e atributos em um map indexado pelo nome da classe
     for(auto const& x : classtable->class_index)
         register_class_methods_and_attrs(x.second);
     
     // Checagem de tipo de todas as classes, atributos, métodos, expressões, etc
-    for (int i = 0; classes->more(i); i = classes->next(i))
+    for (int i = classes->first(); classes->more(i); i = classes->next(i))
         type_check(classes->nth(i));
 
     // Sai com erro em caso de problemas semânticos

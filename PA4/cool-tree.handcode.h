@@ -75,6 +75,10 @@ virtual bool is_method() = 0; \
 	virtual bool is_attr() = 0;   \
 virtual void dump_with_types(ostream&,int) = 0; 
 
+
+#define Feature_SHARED_EXTRAS                                       \
+void dump_with_types(ostream&,int);    
+
 #define method_EXTRAS                                \
 	bool is_method() { return true; }                \
 	bool is_attr() { return false; }                 \
@@ -83,6 +87,7 @@ virtual void dump_with_types(ostream&,int) = 0;
 	Symbol get_return_type() { return return_type; } \
 	Expression get_body_expr() { return expr; } 	 \
 	Symbol type_check();
+
 
 #define attr_EXTRAS                         \
 	bool is_method() { return false; }      \
@@ -93,17 +98,11 @@ virtual void dump_with_types(ostream&,int) = 0;
 	Symbol type_check();
 
 
-#define Feature_SHARED_EXTRAS                                       \
-void dump_with_types(ostream&,int);    
-
-
-
-
-
 #define Formal_EXTRAS                              \
 virtual void dump_with_types(ostream&,int) = 0;		\
 virtual Symbol get_name() = 0;						\
 virtual Symbol get_type() = 0;						
+
 
 #define formal_EXTRAS                           \
 void dump_with_types(ostream&,int);				\
@@ -111,8 +110,10 @@ Symbol get_name() {return name;}					\
 Symbol get_type() {return type_decl;}
 
 #define Case_EXTRAS                             \
-virtual void dump_with_types(ostream& ,int) = 0;\
-virtual Symbol type_check() = 0;				\
+Symbol type;                                     \
+Symbol get_type() { return type; }               \
+virtual void dump_with_types(ostream&, int) = 0; \
+virtual Symbol type_check() = 0;
 
 #define branch_EXTRAS                                   \
 Symbol type;                                     	\
