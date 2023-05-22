@@ -978,7 +978,7 @@ Symbol dispatch_class::type_check() {
         declared_method_args->nth(n_declared_method_args);
         actual_method_args->nth(n_actual_method_args);
 
-        Symbol declared_argument_type = declared_argument->type_check();
+        Symbol declared_argument_type = declared_argument->get_type();
         Symbol actual_argument_type = actual_argument->type_check();
 
         if(!classtable->is_subtype(actual_argument_type, declared_argument_type)){
@@ -1083,7 +1083,7 @@ Symbol static_dispatch_class::type_check() {
         declared_method_args->nth(n_declared_method_args);
         actual_method_args->nth(n_actual_method_args);
 
-        Symbol declared_argument_type = declared_argument->type_check();
+        Symbol declared_argument_type = declared_argument->get_type();
         Symbol actual_argument_type = actual_argument->type_check();
 
         if(!classtable->is_subtype(actual_argument_type, declared_argument_type)){
