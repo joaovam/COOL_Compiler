@@ -502,45 +502,77 @@ void process_method(Class_ current_class, method_class* original_method, method_
 
 void type_check(Class_ next_class) {
     current_class_name = next_class->get_name();
+
+    classtable->semant_error(next_class) << "Name: " << current_class_name << endl;
+
     current_class_definition = next_class;
     current_class_methods = retrieve_methods_from_class(next_class);
     current_class_attrs = retrieve_attrs_from_class(next_class);
+    classtable->semant_error(next_class) << "cheguei aqui: " << current_class_name << endl;
 
     symbol_table = new SymbolTable<Symbol, Symbol>();
-    symbol_table->enterscope();
-    symbol_table->addid(self, new Symbol(current_class_definition->get_name()));
-
+    
     build_attribute_scopes(next_class);
     
     for (const auto &x : current_class_methods) {
         process_method(next_class, x.second, x.second);
     }
 
+    classtable->semant_error(next_class) << "cheguei aqui 2: " << current_class_name << endl;
+
     for (const auto &x : current_class_attrs) {
         Symbol parent_name = classtable->get_parent(current_class_name);
         Class_ parent_definition = classtable->class_index[parent_name];
         process_attributes(parent_definition, x.second);
     }
+    classtable->semant_error(next_class) << "cheguei aqui 3: " << current_class_name << endl;
 
     for (const auto &x : current_class_attrs) {
         x.second->type_check();
     }
+    classtable->semant_error(next_class) << "cheguei aqui 4: " << current_class_name << endl;
 
     for (const auto &x : current_class_methods) {
-        x.second->type_check();
-    }
+        classtable->semant_error(next_class) << "second: " << x.second->get_name() << endl;
 
-    symbol_table->exitscope();
+        x.second->type_check();
+
+        classtable->semant_error(next_class) << " pos second: " << x.second->get_name() << endl;
+    }
+    classtable->semant_error(next_class) << "cheguei aqui final : " << current_class_name << endl;
+}
+
+Symbol int_const_class::type_check() {
+    classtable->semant_error(current_class_definition) << "int: " << endl;
+    this->set_type(Int);
+    return Int;
+}
+
+Symbol bool_const_class::type_check() {
+    this->set_type(Bool);
+    return Bool;
+}
+
+Symbol string_const_class::type_check() {
+    classtable->semant_error(current_class_definition) << "string: " << Str << endl;
+    this->set_type(Str);
+    return Str;
 }
 
 Symbol object_class::type_check() {
-/*     if (name == self) {
+    classtable->semant_error(current_class_definition) << "obj: "<< name << endl;
+
+    if (name == self) {
         this->set_type(SELF_TYPE);
+        classtable->semant_error(current_class_definition) << "setou: "<< name << endl;
         return SELF_TYPE;
     }
 
+    classtable->semant_error(current_class_definition) << "retornou: "<< name << endl;
+
     Symbol* object_type = symbol_table->lookup(name);
-    if (object != nullptr){
+
+    if (object_type != nullptr){
         this->set_type(*object_type);
         return *object_type;
     }
@@ -578,18 +610,21 @@ method_class* get_method_def(Symbol class_name, Symbol method_name){
 }
 
 Symbol no_expr_class::type_check() {
+    classtable->semant_error(current_class_definition) << "no exp: " << endl;
     this->set_type(No_type);
     return No_type;
 }
 
 Symbol isvoid_class::type_check() {
-    /* e1->type_check(); */
+    classtable->semant_error(current_class_definition) << "void: " << endl;
+    e1->type_check();
     this->set_type(Bool);
     return Bool;
 }
 
 Symbol new__class::type_check() {
-    /* if(type_name != SELF_TYPE && !classtable->is_type_defined(type_name))
+    classtable->semant_error(current_class_definition) << "new: " << endl;
+    if(type_name != SELF_TYPE && !classtable->is_type_defined(type_name))
     {
         this->set_type(Object);
         classtable->semant_error(this)
@@ -603,7 +638,8 @@ Symbol new__class::type_check() {
 }
 
 Symbol comp_class::type_check() {
-    /* Symbol expr_type = e1->type_check();
+    classtable->semant_error(current_class_definition) << "comp: " << endl;
+    Symbol expr_type = e1->type_check();
     if (expr_type == Bool) {
         this->set_type(expr_type);
         return expr_type;
@@ -617,7 +653,8 @@ Symbol comp_class::type_check() {
 }
 
 Symbol leq_class::type_check() {
-    /* Symbol left_type = e1->type_check();
+    classtable->semant_error(current_class_definition) << "leq: " << endl;
+    Symbol left_type = e1->type_check();
     Symbol right_type = e2->type_check();
 
     if(left_type == Int && right_type == Int) {
@@ -639,7 +676,8 @@ Symbol leq_class::type_check() {
 }
 
 Symbol eq_class::type_check() {
-    /* Symbol left_type = e1->type_check();
+    classtable->semant_error(current_class_definition) << "eq: " << endl;
+    Symbol left_type = e1->type_check();
     Symbol right_type = e2->type_check();
     
     bool is_left_type_primitive = left_type == Int || left_type == Bool || left_type == Str;
@@ -655,7 +693,8 @@ Symbol eq_class::type_check() {
 }
 
 Symbol lt_class::type_check() {
-    /* Symbol left_type = e1->type_check();
+    classtable->semant_error(current_class_definition) << "lt: " << endl;
+    Symbol left_type = e1->type_check();
     Symbol right_type = e2->type_check();
 
     if(left_type == Int && right_type == Int) {
@@ -810,7 +849,7 @@ Symbol let_class::type_check() {
 }
 
 Symbol block_class::type_check() {
-    
+    classtable->semant_error(current_class_definition) << "block: " << endl;
     // Checagem de tipo de um bloco de expressões
     Symbol last_body_expression_type = Object;
 /*     for (int i = body->first(); body->more(i); i = body->next(i))
@@ -909,7 +948,8 @@ Symbol cond_class::type_check() {
 }
 
 Symbol dispatch_class::type_check() {
-/*     Symbol expr_type = expr->type_check();
+    classtable->semant_error(current_class_definition) << "dispatch: "<< name << endl;
+    Symbol expr_type = expr->type_check();
 
     if(expr_type != SELF_TYPE && !classtable->is_type_defined(expr_type)){
         classtable->semant_error(this)
