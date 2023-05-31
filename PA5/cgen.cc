@@ -619,9 +619,13 @@ void CgenClassTable::code_constants()
 
 CgenClassTable::CgenClassTable(Classes classes, ostream& s) : nds(NULL) , str(s)
 {
-   stringclasstag = 0 /* Change to your String class tag here */;
-   intclasstag =    0 /* Change to your Int class tag here */;
-   boolclasstag =   0 /* Change to your Bool class tag here */;
+   objectclasstag = 0;
+   stringclasstag = 1 /* Change to your String class tag here */;
+   intclasstag =    2 /* Change to your Int class tag here */;
+   boolclasstag =   3 /* Change to your Bool class tag here */;
+   ioclasstag     = 4;
+   currentclasstag = 5;
+   
 
    enterscope();
    if (cgen_debug) cout << "Building CgenClassTable" << endl;
@@ -631,6 +635,23 @@ CgenClassTable::CgenClassTable(Classes classes, ostream& s) : nds(NULL) , str(s)
 
    code();
    exitscope();
+}
+
+int CgenClassTable::next_classtag() { return this->currentclasstag++; }
+
+int CgenClassTable::get_classtag_for(Symbol type) {
+  if (type == Object)
+    return objectclasstag;
+  else if (type == Bool)
+    return boolclasstag;
+  else if (type == Int)
+    return intclasstag;
+  else if (type == Str)
+    return stringclasstag;
+  else if (type == IO)
+    return ioclasstag;
+  else
+    return next_classtag();
 }
 
 void CgenClassTable::install_basic_classes()
@@ -815,7 +836,38 @@ void CgenNode::set_parentnd(CgenNodeP p)
   parentnd = p;
 }
 
+void CgenClassTable::transverse_inheritance_tree(){
+  std::queue<CgenNodeP> queue;
 
+  queue.push(root());
+
+  classtag_of[Object] = get_classtag_for(Object);
+
+  while (!queue.empty())
+  {
+    CgenNodeP class_node = queue.front();
+    queue.pop();
+    Class_ class_def = class_node->get_class_definition();
+    class_definitions[class_def->get_name()] = class_def;
+
+    if(class_node->get_parentnd()){
+      auto parent_class_def = (class_node->get_parentnd()->get_class_definition());
+      attach_inherited_definitions_to(class_def, parent_class_def)
+    }
+  }
+  
+}
+
+void CgenClassTable::attach_inherited_definitions_to(Class_ class_definition, Class_ parent_definition){
+  class_definitions[class_definition->get_name()] = class_definition;
+
+  auto inherited_methods = class_methods[parent_definition->get_name()];
+  auto inherited_method_defs = class_method_defs[parent_definition->get_name()];
+  auto inherited_attrs = class_attributes[parent_definition->get_name()];
+  auto inherited_attr_defs = class_attribute_defs[parent_definition->get_name()];
+  inheritance_parent[class_definition->get_name()] = parent_definition->get_name();
+
+}
 
 void CgenClassTable::code()
 {
@@ -874,6 +926,7 @@ CgenNode::CgenNode(Class_ nd, Basicness bstatus, CgenClassTableP ct) :
    children(NULL),
    basic_status(bstatus)
 { 
+   this->c = nd;
    stringtable.add_string(name->get_string());          // Add class name to string table
 }
 
