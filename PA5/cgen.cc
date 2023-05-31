@@ -494,6 +494,91 @@ void BoolConst::code_def(ostream& s, int boolclasstag)
       s << WORD << val << endl;                             // value (0 or 1)
 }
 
+
+std::vector<Symbol> get_class_methods(Class_ class_def){
+  
+  std::vector<Symbol> class_methods;
+
+  Symbol class_name = class_def->get_name();
+  Features class_f = class_def->get_features();
+
+  for(int i = class_f->first(); class_f->more(i); i = class_f->next(i)){
+    Feature feature = class_f->nth(i);
+
+    if(!feature->is_method())
+      continue;
+    
+    if(cgen_debug) cout << "getting methods from class: " << class_name << std::endl;
+
+    method_class* method = static_cast<method_class*>(feature);
+    Symbol method_name = method->get_name();
+    class_methods.push_back(method_name);
+  }
+  return class_methods;
+}
+
+std::vector<Symbol> get_class_attributes(Class_ class_definition){
+  std::vector<Symbol> class_attrs;
+  Symbol class_name = class_definition->get_name();
+  Features features = class_definition->get_features();
+
+  for (int i = features->first(); features->more(i); i = features->next(i)) 
+    {
+      Feature feature = features->nth(i);
+
+      if(!feature->is_attr())
+        continue;
+
+      attr_class* attr = static_cast<attr_class*>(feature);
+
+      Symbol attr_name = attr->get_name();
+      class_attrs.push_back(attr_name);
+    }
+    return class_attrs;
+}
+
+std::map<Symbol, method_class*> get_class_method_defs(Class_ class_definition) {
+  std::map<Symbol, method_class*> class_methods;
+
+  Symbol class_name = class_definition->get_name();
+
+  Features class_features = class_definition->get_features();
+
+  for (int i = class_features->first(); class_features->more(i); i = class_features->next(i)) 
+    {
+        Feature feature = class_features->nth(i);
+
+        if (!feature->is_method())
+            continue;
+
+        method_class* method = static_cast<method_class*>(feature);
+        Symbol method_name = method->get_name();
+        class_methods[method_name] = method;
+    }
+    return class_methods;
+}
+
+std::map<Symbol, attr_class*> get_class_attribute_defs(Class_ class_definition) {
+  std::map<Symbol, attr_class*> class_attrs;
+
+  Symbol class_name = class_definition->get_name();
+  Features features = class_definition->get_features();
+
+
+  for (int i = features->first(); features->more(i); i = features->next(i)) 
+    {
+        Feature feature = features->nth(i);
+
+        if (!feature->is_attr())
+            continue;
+
+        attr_class* attr = static_cast<attr_class*>(feature);
+        Symbol attr_name = attr->get_name();
+        class_attrs[attr_name] = attr;
+    }
+    return class_attrs;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //
 //  CgenClassTable methods
@@ -506,6 +591,7 @@ void BoolConst::code_def(ostream& s, int boolclasstag)
 //  declare the global names.
 //
 //***************************************************
+
 
 void CgenClassTable::code_global_data()
 {
@@ -852,10 +938,24 @@ void CgenClassTable::transverse_inheritance_tree(){
 
     if(class_node->get_parentnd()){
       auto parent_class_def = (class_node->get_parentnd()->get_class_definition());
-      attach_inherited_definitions_to(class_def, parent_class_def)
+      attach_inherited_definitions_to(class_def, parent_class_def);
     }
+
+    register_properties_and_definitions_of(class_def);
+
+    auto *child_node = class_node->get_children();
+
+      while(child_node){
+
+        auto subclass_node = child_node->hd();
+        auto subclass = subclass_node->get_class_definition();
+        auto subclass_name = subclass->get_name();
+        classtag_of[subclass_name] = get_classtag_for(subclass_name);
+        queue.push(subclass_node);
+        child_node = child_node->tl();
+
+      }
   }
-  
 }
 
 void CgenClassTable::attach_inherited_definitions_to(Class_ class_definition, Class_ parent_definition){
@@ -867,6 +967,104 @@ void CgenClassTable::attach_inherited_definitions_to(Class_ class_definition, Cl
   auto inherited_attr_defs = class_attribute_defs[parent_definition->get_name()];
   inheritance_parent[class_definition->get_name()] = parent_definition->get_name();
 
+   for (auto const &x : inherited_methods) {
+    class_methods[class_definition->get_name()].push_back(x);
+    class_method_defined_in[class_definition->get_name()][x] = class_method_defined_in[parent_definition->get_name()][x];
+  }
+  for (auto const &x : inherited_method_defs) {
+    class_method_defs[class_definition->get_name()][x.first] = x.second;
+  }
+  for (auto const &x : inherited_attrs) {
+    class_attributes[class_definition->get_name()].push_back(x);
+  }
+  for (auto const &x : inherited_attr_defs) {
+    class_attribute_defs[class_definition->get_name()][x.first] = x.second;
+  }
+
+}
+
+void CgenClassTable::register_properties_and_definitions_of(Class_ class_definition) {
+  auto method_names = get_class_methods(class_definition);
+  auto attr_names = get_class_attributes(class_definition);
+  auto method_defs = get_class_method_defs(class_definition);
+  auto attr_defs = get_class_attribute_defs(class_definition);
+
+  for (auto const &method_name : method_names) {
+    class_methods[class_definition->get_name()].push_back(method_name);
+    class_method_defined_in[class_definition->get_name()][method_name] = class_definition->get_name();
+  }
+  for (auto const &attr_name : attr_names) {
+    class_attributes[class_definition->get_name()].push_back(attr_name);
+    class_directly_owned_attributes[class_definition->get_name()].insert(attr_name);
+  }
+  for (auto const &attr_def : attr_defs) {
+    class_attribute_defs[class_definition->get_name()][attr_def.first] = attr_def.second;
+  }
+  for (auto const &method_def : method_defs) {
+    class_method_defs[class_definition->get_name()][method_def.first] = method_def.second;
+  }
+}
+
+void CgenClassTable::construct_protObjs(){
+  for(auto *class_node = this->nds; class_node; class_node = class_node->tl()){
+    auto class_def = class_node->hd()->get_class_definition();
+    auto class_name = class_def->get_name();
+    cgen_class_definition_of[class_name] = construct_cgen_class_definition(class_def);
+
+    for(auto const &x : cgen_class_definition_of[class_name].method_offset){
+      Symbol method_name = x.first;
+      int method_offset = x.second;
+      dispatch_offsets_of_class_methods[class_name][method_name] = method_offset;
+    }
+    cgen_class_names.push_back(class_name);
+  }
+
+  std::sort(std::begin(cgen_class_names), std::end(cgen_class_names), [&](auto const &l, auto const &r){
+    return cgen_class_definition_of[l].tag < cgen_class_definition_of[r].tag;
+  });
+}
+
+cgen_class_definition CgenClassTable::construct_cgen_class_definition(Class_ class_) {
+  Symbol class_name = class_->get_name();
+
+  cgen_class_definition cgen_definition;
+  cgen_definition.name = class_name;
+  cgen_definition.is_primitive_type = (cgen_definition.name == Object || cgen_definition.name == Str 
+                                      || cgen_definition.name ==Bool || cgen_definition.name == Int 
+                                      || cgen_definition.name == IO );
+
+  if(cgen_debug)cout << "defining tag, dispatch table, methods and attrs for class: " << class_name <<endl;
+
+  cgen_definition.tag = classtag_of[class_name];
+  cgen_definition.dispatch_table = this->class_methods[class_name];
+  cgen_definition.attrs = this-> class_attributes[class_name];
+  cgen_definition.method_definitions = this->class_method_defs[class_name];
+  cgen_definition.attr_definitions = this->class_attribute_defs[class_name];
+
+  int attr_offset = DEFAULT_OBJFIELDS, method_offset = 0;
+
+  for(auto const &attr : cgen_definition.attrs)
+    cgen_definition.attr_offset[attr] = attr_offset++;
+
+  for(auto const &method : cgen_definition.dispatch_table)
+    cgen_definition.method_offset[method] = method_offset++;
+
+  cgen_definition.method_definition_containing_class = class_method_defined_in[cgen_definition.name];
+  cgen_definition.directly_owned_attrs = class_directly_owned_attributes[cgen_definition.name];
+  return cgen_definition;
+}
+
+void CgenClassTable::emit_nameTab(){
+  str << CLASSNAMETAB << ":" << endl;
+
+  for(auto const & cgen_def : cgen_class_names){
+
+    if(cgen_debug) cout << "emiting name table for: "<< cgen_def << endl;
+
+    str << WORD;
+    stringtable.lookup_string(cgen_def->get_string())->code_ref(str);
+    str << endl;
+  }
 }
 
 void CgenClassTable::code()
@@ -886,7 +1084,7 @@ void CgenClassTable::code()
 //                   - dispatch tables
 //
 //////////////// João
-  this->traverse_inheritance_tree();
+  this->transverse_inheritance_tree();
   this->construct_protObjs();
   this->emit_nameTab();
   this->emit_objTab();

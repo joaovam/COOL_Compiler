@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 #include <set>
+#include <algorithm>
 
 enum Basicness     {Basic, NotBasic};
 #define TRUE 1
@@ -45,6 +46,8 @@ private:
    std::map<Symbol, cgen_class_definition>            cgen_class_definition_of;
    std::vector<Symbol>                                cgen_class_names;
 
+   std::map<Symbol, std::map<Symbol, int>>            dispatch_offsets_of_class_methods;
+
 
 // The following methods emit code for
 // constants and global declarations.
@@ -72,6 +75,9 @@ private:
 
    void attach_inherited_definitions_to(Class_ , Class_);
    void register_properties_and_definitions_of(Class_);
+
+   cgen_class_definition construct_cgen_class_definition(Class_);
+   void emit_nameTab();
 
 public:
    int next_classtag();
