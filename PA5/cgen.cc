@@ -833,6 +833,14 @@ void CgenClassTable::code()
 //                   - class_nameTab
 //                   - dispatch tables
 //
+//////////////// João
+  this->traverse_inheritance_tree();
+  this->construct_protObjs();
+  this->emit_nameTab();
+  this->emit_objTab();
+  this->emit_parentTab();
+  this->emit_dispatch_tables();
+  this->emit_protObjs();
 
   if (cgen_debug) cout << "coding global text" << endl;
   code_global_text();
@@ -841,6 +849,9 @@ void CgenClassTable::code()
 //                   - object initializer
 //                   - the class methods
 //                   - etc...
+//////////////// Danniel
+  this->emit_initialisers();
+  this->emit_class_methods();
 
 }
 
@@ -877,6 +888,7 @@ CgenNode::CgenNode(Class_ nd, Basicness bstatus, CgenClassTableP ct) :
 //
 //*****************************************************************
 
+//////////////// Filipe
 void assign_class::code(ostream &s) {
 }
 
@@ -912,6 +924,8 @@ void mul_class::code(ostream &s) {
 
 void divide_class::code(ostream &s) {
 }
+
+//////////////// Alice
 
 void neg_class::code(ostream &s) {
 }
