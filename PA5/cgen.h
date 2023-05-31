@@ -30,6 +30,7 @@ private:
    int ioclasstag;
    int objectclasstag;
    int currentclasstag;
+   int objectparenttag;
    std::map<Symbol, int> classtag_of;
    std::map<Symbol, Class_> class_definitions;
 
@@ -77,7 +78,15 @@ private:
    void register_properties_and_definitions_of(Class_);
 
    cgen_class_definition construct_cgen_class_definition(Class_);
+
    void emit_nameTab();
+   void emit_objTab();
+   void emit_parentTab();
+   void emit_dispatchTables();
+   void emit_dispatch_table(cgen_class_definition);
+   void emit_protObjs();
+   void emit_protObj_from(cgen_class_definition);
+   void emit_default_values_for_attr(Symbol);
 
 public:
    int next_classtag();

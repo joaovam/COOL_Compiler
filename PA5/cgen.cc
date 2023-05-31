@@ -711,6 +711,7 @@ CgenClassTable::CgenClassTable(Classes classes, ostream& s) : nds(NULL) , str(s)
    boolclasstag =   3 /* Change to your Bool class tag here */;
    ioclasstag     = 4;
    currentclasstag = 5;
+   objectparenttag = INVALIDPARENTTAG;
    
 
    enterscope();
@@ -1067,6 +1068,78 @@ void CgenClassTable::emit_nameTab(){
   }
 }
 
+void CgenClassTable::emit_objTab(){
+  str << CLASSOBJTAB << ":" << endl;
+
+  
+  for(auto const & cgen_definition : cgen_class_names){
+    if(cgen_debug) cout << "emiting parent table for: "<< cgen_definition << endl;
+    str << WORD << cgen_definition << PROTOBJ_SUFFIX << endl;
+    str << WORD << cgen_definition << "_init" << endl;
+  }
+
+}
+
+void CgenClassTable::emit_parentTab(){
+  str << CLASSPARENTTAB << LABEL;
+
+  for(auto const &type : cgen_class_names){
+    if(type == Object){
+      str << WORD << objectparenttag << endl;
+    }else{
+      str << WORD << classtag_of[inheritance_parent[type]];
+      str << endl;
+    }
+  }
+}
+
+void CgenClassTable::emit_dispatch_table(cgen_class_definition cgen_definition) {
+  str << cgen_definition.name <<DISPTAB_SUFFIX << ":" << endl;
+
+  for(auto const &method: cgen_definition.dispatch_table)
+    str << WORD << cgen_definition.method_definition_containing_class[method] << "." << method << endl;
+}
+
+void CgenClassTable::emit_dispatchTables(){
+  for(auto const & cgen_def : cgen_class_names){
+    emit_dispatch_table(cgen_class_definition_of[cgen_def]);
+  }
+}
+
+
+void CgenClassTable::emit_protObjs() {
+  for(auto const &cgen_def : cgen_class_names){
+
+  }
+}
+
+void CgenClassTable::emit_protObj_from(cgen_class_definition cgen_definition) {
+  str << WORD << -1 << endl;
+  str << cgen_definition.name << PROTOBJ_SUFFIX << ":" << endl;
+  str << WORD << cgen_definition.tag << endl;
+  str << WORD << cgen_definition.size() << endl;
+  str << WORD << cgen_definition.name << DISPTAB_SUFFIX << endl;
+
+  for(auto const &attr: cgen_definition.attrs){
+    str << WORD;
+    emit_default_values_for_attr(cgen_definition.attr_definitions[attr]->get_type());
+    str << endl;
+  }
+}
+
+void CgenClassTable::emit_default_values_for_attr(Symbol type){
+  if(type == Int)
+    inttable.lookup_string("0")->code_ref(str);
+
+  else if(type == Bool)
+    falsebool.code_ref(str);
+  else if(type == Str)
+    stringtable.lookup_string("")->code_ref(str);
+  else
+    str << "0";
+  
+}
+
 void CgenClassTable::code()
 {
   if (cgen_debug) cout << "coding global data" << endl;
@@ -1089,7 +1162,7 @@ void CgenClassTable::code()
   this->emit_nameTab();
   this->emit_objTab();
   this->emit_parentTab();
-  this->emit_dispatch_tables();
+  this->emit_dispatchTables();
   this->emit_protObjs();
 
   if (cgen_debug) cout << "coding global text" << endl;
@@ -1100,8 +1173,8 @@ void CgenClassTable::code()
 //                   - the class methods
 //                   - etc...
 //////////////// Danniel
-  this->emit_initialisers();
-  this->emit_class_methods();
+  // this->emit_initialisers();
+  // this->emit_class_methods();
 
 }
 
