@@ -88,6 +88,12 @@ private:
    void emit_protObj_from(cgen_class_definition);
    void emit_default_values_for_attr(Symbol);
 
+   void emit_initialiser(cgen_class_definition);
+   void emit_initialisers();
+   void emit_method(cgen_class_definition, method_class*);
+   void emit_methods(cgen_class_definition);
+   void emit_class_methods();
+
 public:
    int next_classtag();
    int get_classtag_for(Symbol );

@@ -354,6 +354,24 @@ static void emit_gc_check(char *source, ostream &s)
   s << JAL << "_gc_check" << endl;
 }
 
+static void emit_spill_activation_record_registers(ostream&str) {
+  emit_addiu(SP, SP, -12, str);
+  emit_store(FP, 3, SP, str);
+  emit_store(SELF, 2, SP, str);
+  emit_store(RA, 1, SP, str);
+}
+
+static void emit_setup_frame_pointer(ostream&str) {
+  emit_addiu(FP, SP, 4, str);
+}
+
+static void emit_setup_self_pointer(ostream&str) {
+  emit_move(SELF, ACC, str);
+}
+
+static void emit_jal_without_address(ostream &s){ 
+  s << JAL; 
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -1140,6 +1158,26 @@ void CgenClassTable::emit_default_values_for_attr(Symbol type){
   
 }
 
+void CgenClassTable::emit_initialiser(cgen_class_definition cgen_definition){
+  str << cgen_definition.name << CLASSINIT_SUFFIX << LABEL;
+
+  emit_spill_activation_record_registers(str);
+  emit_setup_frame_pointer(str);
+  emit_setup_self_pointer(str);
+
+  if (cgen_definition.name != Object) {
+    emit_jal_without_address(str);
+    str << inheritance_parent[cgen_definition.name] << CLASSINIT_SUFFIX << endl;
+  }
+
+}
+
+void CgenClassTable::emit_initialisers(){
+  for(auto const &cgen_def : cgen_class_names){
+    emit_initialiser(cgen_class_definition_of[cgen_definition]);
+  }
+}
+
 void CgenClassTable::code()
 {
   if (cgen_debug) cout << "coding global data" << endl;
@@ -1173,7 +1211,7 @@ void CgenClassTable::code()
 //                   - the class methods
 //                   - etc...
 //////////////// Danniel
-  // this->emit_initialisers();
+  this->emit_initialisers();
   // this->emit_class_methods();
 
 }
