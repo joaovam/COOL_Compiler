@@ -361,6 +361,13 @@ static void emit_spill_activation_record_registers(ostream&str) {
   emit_store(RA, 1, SP, str);
 }
 
+static void emit_bring_back_activation_record_registers(ostream&str){
+  emit_load(RA, 1, SP, str);
+  emit_load(SELF, 2, SP, str);
+  emit_load(FP, 3, SP, str);
+  emit_addiu(SP, SP, 12, str);
+}
+
 static void emit_setup_frame_pointer(ostream&str) {
   emit_addiu(FP, SP, 4, str);
 }
@@ -1158,18 +1165,40 @@ void CgenClassTable::emit_default_values_for_attr(Symbol type){
   
 }
 
-void CgenClassTable::emit_initialiser(cgen_class_definition cgen_definition){
-  str << cgen_definition.name << CLASSINIT_SUFFIX << LABEL;
+void CgenClassTable::emit_initialiser(cgen_class_definition cgen_def){
+  str << cgen_def.name << CLASSINIT_SUFFIX << LABEL;
 
   emit_spill_activation_record_registers(str);
   emit_setup_frame_pointer(str);
   emit_setup_self_pointer(str);
 
-  if (cgen_definition.name != Object) {
+  if (cgen_def.name != Object) {
     emit_jal_without_address(str);
-    str << inheritance_parent[cgen_definition.name] << CLASSINIT_SUFFIX << endl;
+    str << inheritance_parent[cgen_def.name] << CLASSINIT_SUFFIX << endl;
   }
 
+  cgen_context contx;
+  contx.class_name = cgen_def.name;
+  contx.class_attr_offsets = cgen_def.attr_offset;
+  contx.self_class_def = class_definitions[cgen_def.name];
+  contx.dispatch_offsets = dispatch_offsets_of_class_methods;
+  contx.classtag = classtag_of;
+  
+  for (auto const& attr_name : cgen_def.attrs){
+    Expression attr_init_expr = cgen_def.attr_definitions[attr_name]->get_init_expr();
+    bool has_init_expr = dynamic_cast<no_expr_class*>(attr_init_expr) == nullptr;
+
+    if(has_init_expr &&
+       cgen_def.is_directly_owned(attr_name)) {
+        attr_init_expr->code(str, contx);
+        emit_store(ACC, cgen_def.attr_offset[attr_name], SELF, str);
+       }
+
+  }
+
+  emit_move(ACC, SELF, str);
+  emit_bring_back_activation_record_registers(str);
+  emit_return(str);
 }
 
 void CgenClassTable::emit_initialisers(){

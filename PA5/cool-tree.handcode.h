@@ -44,6 +44,57 @@ typedef Expressions_class *Expressions;
 typedef list_node<Case> Cases_class;
 typedef Cases_class *Cases;
 
+typedef struct cgen_context
+{
+	Symbol	class_name;
+	Symbol 	method_name;
+	Class_ 	self_class_def;
+	std::vector<Symbol> symbols_scope;
+	std::map<Symbol, int> class_attr_offsets;
+	std::map<Symbol, int> method_attr_offsets;
+	std::map<Symbol, int> classtag;
+	std::map<Symbol, std::map<Symbol, int>> dispatch_offsets;
+
+	void push_scope_id(Symbol id){
+		symbols_scope.push_back(id);
+	}
+
+	void pop_scope_id(){
+		symbols_scope.pop_back();
+	}
+
+	int get_scope_id_offset(Symbol id){
+		if(!symbols_scope.size()) return -1;
+
+		int offset = symbols_scope.size() -1;
+		while(offset >= 0 && symbols_scope[offset] != id)
+			offset--;
+		
+		int offset_scope_start = symbols_scope.size() - 1 - offset;
+		int scope_id_offset = symbols_scope[offset] == id ? offset_scope_start : -1;
+		return scope_id_offset;
+	}
+
+	int get_method_attr_offset(Symbol id){
+		return (
+			method_attr_offset.find(id) != method_attr_offset.end() ? 
+				method_attr_offset[id] : -1
+		);
+	}
+
+	int get_class_attr_id_offset(Symbol id){
+		return (
+			class_attr_offset.find(id) != class_attr_offset.end() ? 
+				class_attr_offset[id] : -1
+		);
+	}
+
+	int get_class_method_dispatch_offset(Symbol class_name, Symbol method_name){
+		return dispatch_offsets[class_name][method_name];
+	}
+
+} cgen_context;
+
 #define Program_EXTRAS                          \
 virtual void cgen(ostream&) = 0;		\
 virtual void dump_with_types(ostream&, int) = 0; 
@@ -115,7 +166,7 @@ void dump_with_types(ostream& ,int);
 Symbol type;                                 \
 Symbol get_type() { return type; }           \
 Expression set_type(Symbol s) { type = s; return this; } \
-virtual void code(ostream&) = 0; \
+virtual void code(ostream&, cgen_context) = 0; \
 virtual void dump_with_types(ostream&,int) = 0;  \
 void dump_type(ostream&, int);               \
 Expression_class() { type = (Symbol) NULL; }
