@@ -322,6 +322,15 @@ static void emit_push(char *reg, ostream& str)
   emit_addiu(SP,SP,-4,str);
 }
 
+static void emit_pop(char* reg, ostream& str){
+  emit_addiu(SP,SP,4,str);
+  emit_load(reg,0,SP,str);
+}
+
+static void emit_pop_without_load(ostream& str){
+  emit_addiu(SP,SP,4,str);
+}
+
 //
 // Fetch the integer value in an Int object.
 // Emits code to fetch the integer value of the Integer object pointed
@@ -1207,6 +1216,75 @@ void CgenClassTable::emit_initialisers(){
   }
 }
 
+std::map<Symbol, int> get_method_args_offsets(method_class* method_def){
+  std::map<Symbol, int> args_offset;
+
+  Formals declared_method_args = method_def->get_formals();
+  int declared_argument_i = declared_method_args->first();
+  int arg_offset = 0;
+  while(declared_method_args->more(declared_argument_i)){
+    arg_offset++;
+
+    declared_argument_i = declared_method_args->next(declared_argument_i);
+  }
+  arg_offset--;
+
+  declared_method_args = method_args = method_def->get_formals();
+  declared_argument_i = declared_method_args->first();
+  Formal declared_arg;
+  Symbol declared_arg_name;
+  while(declared_method_args->more(declared_argument_i)){
+    declared_arg = declared_method_args->nth(declared_argument_i);
+    declared_arg_name = declared_arg->get_name();
+    
+    args_offset[declared_arg_name] = arg_offset;
+    arg_offset--;
+    declared_argument_i = declared_method_args->next(declared_argument_i);
+  }
+  return args_offset;
+}
+
+void CgenClassTable::emit_method(cgen_class_definition cgen_def, method_class* method_def){
+  cgen_context contx;
+  contx.class_name = cgen_def.name;
+  contx.class_attr_offset = cgen_def.attr_offset;
+  contx.method_attr_offset = get_method_args_offsets(method_def);
+  contx.self_class_def = class_definitions[cgen_def.name];
+  contx.dispatch_offsets = dispatch_offsets_of_class_methods;
+  contx.method_name = method_def->get_name();
+  contx.classtag = classtag_of;
+
+  emit_method_ref(contx.class_name, contx.method_name, str);
+  str << LABEL;
+  emit_spill_activation_record_registers(str);
+  emit_setup_frame_pointer(str);
+  emit_setup_self_pointer(str);
+
+  method_def->get_body_expr()->code(str, contx);
+  emit_bring_back_activation_record_registers(str);
+
+  for(int i = 0; i < contx.method_attr_offset.size(); i++){
+    emit_pop_without_load(str);
+    contx.pop_scope_id();
+  }
+  emit_return(str);
+}
+
+void CgenClassTable::emit_class_method(cgen_class_definition cgen_def){
+  for(auto const &x : cgen_def.method_definitions){
+    if(cgen_def.is_defining_method(x.first)){
+      emit_method(cgen_def, x.second);
+    }
+  }
+}
+
+void CgenClassTable::emit_class_methods(){
+  for(auto const &cgen_def : cgen_class_names){
+    if(!cgen_class_definition_of[cgen_def].is_primitive_type)
+      emit_class_method(cgen_class_definition_of[cgen_definition]);
+  }
+}
+
 void CgenClassTable::code()
 {
   if (cgen_debug) cout << "coding global data" << endl;
@@ -1241,7 +1319,7 @@ void CgenClassTable::code()
 //                   - etc...
 //////////////// Danniel
   this->emit_initialisers();
-  // this->emit_class_methods();
+  this->emit_class_methods();
 
 }
 
