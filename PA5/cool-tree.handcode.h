@@ -80,14 +80,14 @@ typedef struct cgen_context
 	int get_method_attr_offset(Symbol id){
 		return (
 			method_attr_offsets.find(id) != method_attr_offsets.end() ? 
-				method_attr_offset[id] : -1
+				method_attr_offsets[id] : -1
 		);
 	}
 
 	int get_class_attr_id_offset(Symbol id){
 		return (
-			class_attr_offset.find(id) != class_attr_offset.end() ? 
-				class_attr_offset[id] : -1
+			class_attr_offsets.find(id) != class_attr_offsets.end() ? 
+				class_attr_offsets[id] : -1
 		);
 	}
 
