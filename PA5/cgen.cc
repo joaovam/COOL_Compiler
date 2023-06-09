@@ -1195,7 +1195,7 @@ void CgenClassTable::emit_initialiser(cgen_class_definition cgen_def){
 
   cgen_context contx;
   contx.class_name = cgen_def.name;
-  contx.class_attr_offsetss = cgen_def.attr_offset;
+  contx.class_attr_offsets = cgen_def.attr_offset;
   contx.self_class_def = class_definitions[cgen_def.name];
   contx.dispatch_offsets = dispatch_offsets_of_class_methods;
   contx.classtag = classtag_of;
