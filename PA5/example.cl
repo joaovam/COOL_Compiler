@@ -175,7 +175,7 @@ class Main inherits E {
     in {
       out_int(y2);
       out_int(x2);
-      out_string(if isvoid z then "OK" else "failed" fi);
+      out_string(if isvoid z then "OK" else "falhou" fi);
     }
 
     -- Teste: case
