@@ -1370,40 +1370,352 @@ int next_label() { // retorna a próxima label
 }
 
 //////////////// Filipe
-void assign_class::code(ostream &s) {
+int current_label_index = 0;
+int next_label() {
+  return current_label_index++;
 }
 
-void static_dispatch_class::code(ostream &s) {
+void assign_class::code(ostream &s, cgen_context context) {
+
+    expr->code(s, context); // acc value
+
+    int scope_stack_offset = context.get_scope_identifier_offset(name);
+    int method_arg_offset = context.get_method_attr_offset(name);
+    int class_attr_offset = context.get_class_attribute_identifier_offset(name);
+    
+    bool is_in_scope = scope_stack_offset != -1;
+    bool is_method_argument = method_arg_offset != -1;
+    bool is_class_attr = class_attr_offset != -1;
+
+    if (is_in_scope) {
+        emit_store(ACC, scope_stack_offset + 1, SP, s);
+        if (cgen_Memmgr == GC_GENGC) {
+        emit_addiu(A1, SP, 4 * (scope_stack_offset + 1), s);
+        emit_gc_assign(s);
+        }
+        return;
+    }
+    if (is_method_argument) {
+        emit_store(ACC, 3 + method_arg_offset, FP, s);
+        if (cgen_Memmgr == GC_GENGC) {
+        emit_addiu(A1, FP, 4 * (3 + method_arg_offset), s);
+        emit_gc_assign(s);
+        }
+        return;
+    }
+    if (is_class_attr) {
+        emit_store(ACC, class_attr_offset, SELF, s);
+        if (cgen_Memmgr == GC_GENGC) {
+        emit_addiu(A1, SELF, 4 * (class_attr_offset), s);
+        emit_gc_assign(s);
+        }
+        return;
+    }
 }
 
-void dispatch_class::code(ostream &s) {
+void static_dispatch_class::code(ostream &s, cgen_context context) {
+
+    Expressions actual_method_args = actual;
+    Symbol dispatch_target_type = type_name;
+    int actual_argument_ix = actual_method_args->first();
+    int dispatch_start_label = next_label();
+    int dispatch_offset = context.get_class_method_dispatch_offset(dispatch_target_type, name);
+    Class_ class_definition = context.self_class_definition;
+
+    while (actual_method_args->more(actual_argument_ix))
+    {
+        Expression actual_argument = actual_method_args->nth(actual_argument_ix);
+        actual_argument->code(s, context);
+        emit_push(ACC, s);
+        context.push_scope_identifier(No_type);
+        actual_argument_ix = actual_method_args->next(actual_argument_ix);
+    }
+
+    expr->code(s, context); // ACC has dispatch object
+
+    //  Ensure dispatch to existing object
+    emit_bne(ACC, ZERO, dispatch_start_label, s);
+    //  Dispatch to void
+    emit_partial_load_address(ACC, s);
+    stringtable.lookup_string(class_definition->get_filename()->get_string())->code_ref(s);
+    s << endl;
+    emit_load_imm(T1, get_line_number(), s);
+    emit_jal("_dispatch_abort", s);
+    // Dispatch to valid object
+    emit_label_def(dispatch_start_label, s);
+    emit_load_address(T1, (char *) (std::string(type_name->get_string()) + DISPTAB_SUFFIX).c_str(), s);
+    emit_load(T1, dispatch_offset, T1, s); // $t1 holds pointer to method entry
+    emit_jalr(T1, s);
 }
 
-void cond_class::code(ostream &s) {
+void dispatch_class::code(ostream &s, cgen_context context) {
+    
+    Expressions actual_method_args = actual;
+    Symbol dispatch_target_type = expr->get_type() == SELF_TYPE ? context.self_name : expr->get_type();
+    int actual_argument_ix = actual_method_args->first();
+    int dispatch_start_label = next_label();
+    int dispatch_offset = context.get_class_method_dispatch_offset(dispatch_target_type, name);
+    Class_ class_definition = context.self_class_definition;
+
+    while (actual_method_args->more(actual_argument_ix))
+    {
+        Expression actual_argument = actual_method_args->nth(actual_argument_ix);
+        actual_argument->code(s, context);
+        emit_push(ACC, s);
+        context.push_scope_identifier(No_type);
+        actual_argument_ix = actual_method_args->next(actual_argument_ix);
+    }
+
+    expr->code(s, context); // ACC has dispatch object
+
+    //  Ensure dispatch to existing object
+    emit_bne(ACC, ZERO, dispatch_start_label, s);
+    //  Dispatch to void
+    emit_partial_load_address(ACC, s);
+    stringtable.lookup_string(class_definition->get_filename()->get_string())->code_ref(s);
+    s << endl;
+    emit_load_imm(T1, get_line_number(), s);
+    emit_jal("_dispatch_abort", s);
+    // Dispatch to valid object
+    emit_label_def(dispatch_start_label, s);
+    emit_load(T1, 2, ACC, s); // $t1 holds pointer to disptab
+    emit_load(T1, dispatch_offset, T1, s); // $t1 holds pointer to method entry
+    emit_jalr(T1, s);
 }
 
-void loop_class::code(ostream &s) {
+void cond_class::code(ostream &s, cgen_context context) {
+
+    int predicate_fails = next_label();
+    int done_label = next_label();
+
+    pred->code(s, context);
+    emit_fetch_int(T1, ACC, s);
+    emit_beq(T1, ZERO, predicate_fails, s);
+    //
+    then_exp->code(s, context);
+    emit_jump_to_label(done_label, s);
+    //
+    emit_label_def(predicate_fails, s);
+    else_exp->code(s, context);
+    //
+    emit_label_def(done_label, s);
 }
 
-void typcase_class::code(ostream &s) {
+void loop_class::code(ostream &s, cgen_context context) {
+
+    int loop_begin_label = next_label();
+    int loop_exit_label = next_label();
+
+    emit_label_def(loop_begin_label, s);
+    // loop begin
+    pred->code(s, context);
+    emit_fetch_int(T1, ACC, s);
+    emit_beq(T1, ZERO, loop_exit_label, s);
+    // predicate holds
+    body->code(s, context); // execute body and loop again
+    emit_jump_to_label(loop_begin_label, s);
+    // predicate fails
+    emit_label_def(loop_exit_label, s);
+    
+    emit_move(ACC, ZERO, s);
 }
 
-void block_class::code(ostream &s) {
+void typcase_class::code(ostream &s, cgen_context context) {
+
+    Class_ class_definition = context.self_class_definition;
+    int typcase_exp_save_to_check = next_label();
+    int typcase_match_failure_label = next_label();
+    int typcase_branch_match_succesfull_label = next_label();
+    int ancestors_loop_start = next_label();
+    int ancestors_cases_start = next_label();
+
+    std::map<Symbol, int> branches_match_labels;
+    std::map<Symbol, int> branches_classtype_tags;
+    std::map<Symbol, branch_class*> branches;
+    std::vector<Symbol> branch_types;
+
+    // analyse classes and tags
+    for (int i = cases->first(); cases->more(i); i = cases->next(i)) {
+        branch_class* branch = static_cast<branch_class*>(cases->nth(i));
+        Symbol branch_static_type = branch->get_declaration_type();
+        branches[branch_static_type] = branch;
+        branches_classtype_tags[branch_static_type] = context.classtag_of[branch_static_type];
+        branches_match_labels[branch_static_type] = next_label();
+        branch_types.push_back(branch_static_type);
+    }
+
+    std::sort(
+        std::begin(branch_types), 
+        std::end(branch_types), 
+        [&](auto const &l, auto const &r) {
+        return branches_classtype_tags[l] > branches_classtype_tags[r];
+        }
+    );
+
+    expr->code(s, context);
+    // Ensure dispatch to existing object
+    emit_bne(ACC, ZERO, typcase_exp_save_to_check, s);
+    //  Dispatch to void
+    emit_partial_load_address(ACC, s);
+    stringtable.lookup_string(class_definition->get_filename()->get_string())->code_ref(s);
+    s << endl;
+    emit_load_imm(T1, get_line_number(), s);
+    emit_jal("_case_abort2", s);
+
+    // Dispatch to valid object
+    emit_label_def(typcase_exp_save_to_check, s);
+    emit_load(T1, TAG_OFFSET, ACC, s); // $t1 holds expr dynamic type tag
+
+    // Consider every ancestor type of dynamic type tag and emit beq for each class tag match in correct order
+    // T4 current ancestor of expr type
+    // T5 class_parentTab address
+    // T6 invalid parent
+    // T7 offset multiplier
+
+    emit_move(T4, T1, s);
+    emit_load_address(T5, CLASSPARENTTAB, s);
+    emit_load_imm(T6, INVALIDPARENTTAG, s);
+    emit_load_imm(T7, 4, s);
+    emit_label_def(ancestors_loop_start, s);
+    emit_bne(T4, T6, ancestors_cases_start, s);
+    emit_jump_to_label(typcase_match_failure_label, s);
+    emit_label_def(ancestors_cases_start, s);
+    for (auto const &branch_type : branch_types) {
+        int branch_matched_label = branches_match_labels[branch_type];
+        int branch_classtag = branches_classtype_tags[branch_type];
+        emit_load_imm(T2, branch_classtag, s); // $t2 -> branch_classtag
+        emit_beq(T4, T2, branch_matched_label, s);
+    }
+
+    // Setup variable dynamic type ancestor
+    emit_mul(T4, T4, T7, s);
+    emit_addu(T4, T4, T5, s);
+    emit_load(T4, 0, T4, s);
+    // Generate code for ancestor type loop
+
+    emit_jump_to_label(ancestors_loop_start, s);
+    emit_jump_to_label(typcase_match_failure_label, s);
+
+    for (auto const &branch_type : branch_types) {
+        int branch_matched_label = branches_match_labels[branch_type];
+        int branch_classtag = branches_classtype_tags[branch_type];
+        branch_class* branch = branches[branch_type];
+
+        emit_label_def(branch_matched_label, s);
+
+        emit_push(ACC, s);
+        context.push_scope_identifier(branch->get_name());
+
+        branch->expr->code(s, context);
+
+        emit_pop_without_load(s);
+        context.pop_scope_identifier();
+
+        emit_jump_to_label(typcase_branch_match_succesfull_label, s);
+    }
+
+    // Generate code for match failure label
+    // T3 holds class name, T1 classtag
+
+    emit_label_def(typcase_match_failure_label, s);
+    emit_load_address(T3, CLASSNAMETAB, s);
+    emit_load_imm(T2, 4, s);
+    emit_mul(T2, T1, T2, s); // T2 holds classtag address
+    emit_addu(T3, T3,T2, s);
+    emit_jal("_case_abort", s);
+
+    // Generate code for match successfull label
+    emit_label_def(typcase_branch_match_succesfull_label, s);
 }
 
-void let_class::code(ostream &s) {
+void block_class::code(ostream &s, cgen_context context) {
+
+    for (int i = body->first(); body->more(i); i = body->next(i))
+    body->nth(i)->code(s, context);
 }
 
-void plus_class::code(ostream &s) {
+void let_class::code(ostream &s, cgen_context context) {
+
+    init->code(s, context);
+
+    bool should_emit_default_init = dynamic_cast<no_expr_class*>(init) != nullptr;
+
+    if (should_emit_default_init) {
+        if (type_decl == Str) {
+            emit_load_string(ACC, stringtable.lookup_string(""), s);
+        } else if (type_decl == Int) {
+            emit_load_int(ACC, inttable.lookup_string("0"), s);
+        } else if (type_decl == Bool) {
+            emit_load_bool(ACC, BoolConst(0), s);
+        }
+    }
+
+    context.push_scope_identifier(identifier);
+    emit_push(ACC, s);
+    body->code(s, context);
+    emit_pop_without_load(s);
+    context.pop_scope_identifier();
 }
 
-void sub_class::code(ostream &s) {
+void plus_class::code(ostream &s, cgen_context context) {
+
+    this->e1->code(s, context);
+    emit_push(ACC, s);
+    context.push_scope_identifier(No_type);
+    this->e2->code(s, context);
+    emit_jal("Object.copy", s);
+    emit_pop(T1, s);
+    context.pop_scope_identifier();
+
+    emit_fetch_int(T1, T1, s);
+    emit_fetch_int(T2, ACC, s);
+    emit_add(T3, T1, T2, s);
+    emit_store_int(T3, ACC, s);
 }
 
-void mul_class::code(ostream &s) {
+void sub_class::code(ostream &s, cgen_context context) {
+
+    this->e1->code(s, context);
+    emit_push(ACC, s);
+    context.push_scope_identifier(No_type);
+    this->e2->code(s, context);
+    emit_jal("Object.copy", s);
+    emit_pop(T1, s);
+    context.pop_scope_identifier();
+    emit_fetch_int(T1, T1, s);
+    emit_fetch_int(T2, ACC, s);
+    emit_sub(T3, T1, T2, s);
+    emit_store_int(T3, ACC, s);
 }
 
-void divide_class::code(ostream &s) {
+void mul_class::code(ostream &s, cgen_context context) {
+
+    this->e1->code(s, context);
+    emit_push(ACC, s);
+    context.push_scope_identifier(No_type);
+    this->e2->code(s, context);
+    emit_jal("Object.copy", s);
+    emit_pop(T1, s);
+    context.pop_scope_identifier();
+    emit_fetch_int(T1, T1, s);
+    emit_fetch_int(T2, ACC, s);
+    emit_mul(T3, T1, T2, s);
+    emit_store_int(T3, ACC, s);
+}
+
+void divide_class::code(ostream &s, cgen_context context) {
+
+    this->e1->code(s, context);
+    emit_push(ACC, s);
+    context.push_scope_identifier(No_type);
+    this->e2->code(s, context);
+    emit_jal("Object.copy", s);
+    emit_pop(T1, s);
+    context.pop_scope_identifier();
+    emit_fetch_int(T1, T1, s);
+    emit_fetch_int(T2, ACC, s);
+    emit_div(T3, T1, T2, s);
+    emit_store_int(T3, ACC, s);
 }
 
 void neg_class::code(ostream &s, cgen_context ctx) {
