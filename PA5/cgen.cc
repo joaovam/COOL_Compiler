@@ -1195,7 +1195,7 @@ void CgenClassTable::emit_initialiser(cgen_class_definition cgen_def){
 
   cgen_context contx;
   contx.class_name = cgen_def.name;
-  contx.class_attr_offsets = cgen_def.attr_offset;
+  contx.class_attr_offsetss = cgen_def.attr_offset;
   contx.self_class_def = class_definitions[cgen_def.name];
   contx.dispatch_offsets = dispatch_offsets_of_class_methods;
   contx.classtag = classtag_of;
@@ -1254,8 +1254,8 @@ std::map<Symbol, int> get_method_args_offsets(method_class* method_def){
 void CgenClassTable::emit_method(cgen_class_definition cgen_def, method_class* method_def){
   cgen_context contx;
   contx.class_name = cgen_def.name;
-  contx.class_attr_offset = cgen_def.attr_offset;
-  contx.method_attr_offset = get_method_args_offsets(method_def);
+  contx.class_attr_offsets = cgen_def.attr_offset;
+  contx.method_attr_offsets = get_method_args_offsets(method_def);
   contx.self_class_def = class_definitions[cgen_def.name];
   contx.dispatch_offsets = dispatch_offsets_of_class_methods;
   contx.method_name = method_def->get_name();
@@ -1270,14 +1270,14 @@ void CgenClassTable::emit_method(cgen_class_definition cgen_def, method_class* m
   method_def->get_body_expr()->code(str, contx);
   emit_bring_back_activation_record_registers(str);
 
-  for(int i = 0; i < contx.method_attr_offset.size(); i++){
+  for(int i = 0; i < contx.method_attr_offsets.size(); i++){
     emit_pop_without_load(str);
     contx.pop_scope_id();
   }
   emit_return(str);
 }
 
-void CgenClassTable::emit_class_method(cgen_class_definition cgen_def){
+void CgenClassTable::emit_methods(cgen_class_definition cgen_def){
   for(auto const &x : cgen_def.method_definitions){
     if(cgen_def.is_defining_method(x.first)){
       emit_method(cgen_def, x.second);
@@ -1288,7 +1288,7 @@ void CgenClassTable::emit_class_method(cgen_class_definition cgen_def){
 void CgenClassTable::emit_class_methods(){
   for(auto const &cgen_def : cgen_class_names){
     if(!cgen_class_definition_of[cgen_def].is_primitive_type)
-      emit_class_method(cgen_class_definition_of[cgen_definition]);
+      emit_methods(cgen_class_definition_of[cgen_def]);
   }
 }
 
@@ -1363,11 +1363,11 @@ CgenNode::CgenNode(Class_ nd, Basicness bstatus, CgenClassTableP ct) :
 //   constant integers, strings, and booleans are provided.
 //
 //*****************************************************************
-int current_label_ix = 0;
+/* int current_label_ix = 0;
 
 int next_label() { // retorna a próxima label
   return current_label_ix++;
-}
+} */
 
 //////////////// Filipe
 int current_label_index = 0;
