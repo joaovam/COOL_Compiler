@@ -8,6 +8,8 @@
 #include "tree.h"
 #include "cool.h"
 #include "stringtab.h"
+#include <vector>
+#include <map>
 #define yylineno curr_lineno;
 extern int yylineno;
 
