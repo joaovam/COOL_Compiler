@@ -1219,7 +1219,7 @@ void CgenClassTable::emit_initialiser(cgen_class_definition cgen_def){
 
 void CgenClassTable::emit_initialisers(){
   for(auto const &cgen_def : cgen_class_names){
-    emit_initialiser(cgen_class_definition_of[cgen_definition]);
+    emit_initialiser(cgen_class_definition_of[cgen_def]);
   }
 }
 
@@ -1236,7 +1236,7 @@ std::map<Symbol, int> get_method_args_offsets(method_class* method_def){
   }
   arg_offset--;
 
-  declared_method_args = method_args = method_def->get_formals();
+  declared_method_args = method_def->get_formals();
   declared_argument_i = declared_method_args->first();
   Formal declared_arg;
   Symbol declared_arg_name;
