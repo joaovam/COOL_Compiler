@@ -346,7 +346,6 @@ static void emit_fetch_int(char *dest, char *source, ostream& s)
 static void emit_store_int(char *source, char *dest, ostream& s)
 { emit_store(source, DEFAULT_OBJFIELDS, dest, s); }
 
-
 static void emit_test_collector(ostream &s)
 {
   emit_push(ACC, s);
@@ -387,6 +386,16 @@ static void emit_setup_self_pointer(ostream&str) {
 
 static void emit_jal_without_address(ostream &s){ 
   s << JAL; 
+}
+
+static void emit_jump_to_label(int label, ostream &s) {
+  s << "\tj\t";
+  emit_label_ref(label, s);
+  s << endl;
+}
+
+static void emit_not(char* dest, char* src, ostream &s) {
+  s << "\tnot\t" << dest << "\t" << src << endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1140,7 +1149,6 @@ void CgenClassTable::emit_dispatchTables(){
   }
 }
 
-
 void CgenClassTable::emit_protObjs() {
   for(auto const &cgen_def : cgen_class_names){
 
@@ -1171,7 +1179,6 @@ void CgenClassTable::emit_default_values_for_attr(Symbol type){
     stringtable.lookup_string("")->code_ref(str);
   else
     str << "0";
-  
 }
 
 void CgenClassTable::emit_initialiser(cgen_class_definition cgen_def){
@@ -1356,6 +1363,11 @@ CgenNode::CgenNode(Class_ nd, Basicness bstatus, CgenClassTableP ct) :
 //   constant integers, strings, and booleans are provided.
 //
 //*****************************************************************
+int current_label_ix = 0;
+
+int next_label() { // retorna a próxima label
+  return current_label_ix++;
+}
 
 //////////////// Filipe
 void assign_class::code(ostream &s) {
@@ -1394,51 +1406,188 @@ void mul_class::code(ostream &s) {
 void divide_class::code(ostream &s) {
 }
 
-//////////////// Alice
-
-void neg_class::code(ostream &s) {
+void neg_class::code(ostream &s, cgen_context ctx) {
+	e1->code(s, ctx);
+	emit_jal("Object.copy", s); // pega uma copia do objeto e armazena em acc
+	emit_load(T1, 3, ACC, s); // carrega o valor de e2
+	emit_load_imm(T2, 0, s);
+	emit_sub(T1, T2, T1, s); // $t1 = $t1 - $t2
+	emit_store(T1, 3, ACC, s); // armazena o valor
 }
 
-void lt_class::code(ostream &s) {
+void lt_class::code(ostream &s, cgen_context ctx) {
+  int less_label = next_label();
+  int done_label = next_label();
+
+  e1->code(s, ctx); // salva o acc
+  emit_push(ACC, s);
+  ctx.push_scope_identifier(No_type);
+
+  e2->code(s, ctx); // usa $t1 e $t2
+  emit_pop(T1, s); // $t1 = e1_int
+  ctx.pop_scope_identifier();
+
+  emit_move(T2, ACC, s); // $t2 = e2_int
+  emit_fetch_int(T1, T1, s); // $t1 = e1_int.val
+  emit_fetch_int(T2, T2, s); // $t2 = e2_int.val
+  emit_blt(T1, T2, less_label, s); // se t$1 < $t2
+  emit_load_bool(ACC, BoolConst(0), s); // carrega true
+  emit_jump_to_label(done_label, s);
+  emit_label_def(less_label, s);
+  emit_load_bool(ACC, BoolConst(1), s); // carrega false
+  emit_label_def(done_label, s);
 }
 
-void eq_class::code(ostream &s) {
+void eq_class::code(ostream &s, cgen_context ctx) {
+  int are_reference_equal = next_label();
+  int done_label = next_label();
+
+  e1->code(s, ctx); // salva o acc
+  emit_push(ACC, s);
+  ctx.push_scope_identifier(No_type);
+
+  e2->code(s, ctx); // usa $t1 e $t2
+  emit_pop(T1, s); // $t1 = e1_object
+  ctx.pop_scope_identifier();
+
+  emit_move(T2, ACC, s); // $t2 = e2_object
+
+  if (e1->type == Int || e1->type == Str || e1->type == Bool) { // se for tipo básico
+      // a0 é true, a1 é false. Se diferente, a0 é false
+      emit_load_bool(ACC, BoolConst(1), s);
+      emit_load_bool(A1, BoolConst(0), s);
+      emit_jal("equality_test", s);
+      return;
+  }
+
+  // se não for tipo básico
+  emit_beq(T1, T2, are_reference_equal, s); // se $t1 = $t2
+  emit_load_bool(ACC, BoolConst(0), s); // carrega true
+  emit_jump_to_label(done_label, s);
+  emit_label_def(are_reference_equal, s);
+  emit_load_bool(ACC, BoolConst(1), s); // carrega false
+  emit_label_def(done_label, s);
 }
 
-void leq_class::code(ostream &s) {
+void leq_class::code(ostream &s, cgen_context ctx) {
+  int less_or_equal_label = next_label();
+  int done_label = next_label();
+
+  e1->code(s, ctx); // salva o acc
+  emit_push(ACC, s);
+  ctx.push_scope_identifier(No_type);
+
+  e2->code(s, ctx); // usa $t1 e $t2
+  emit_pop(T1, s); // $t1 = e1_int
+  ctx.pop_scope_identifier();
+
+  emit_move(T2, ACC, s); // $t2 = e2_int
+  emit_fetch_int(T1, T1, s); // $t1 = e1_int.val
+  emit_fetch_int(T2, T2, s); // $t2 = e2_int.val
+  emit_bleq(T1, T2, less_or_equal_label, s); // se $t1 <= $t2
+  emit_load_bool(ACC, BoolConst(0), s); // carrega true
+  emit_jump_to_label(done_label, s);
+  emit_label_def(less_or_equal_label, s);
+  emit_load_bool(ACC, BoolConst(1), s); // carrega false
+  emit_label_def(done_label, s);
 }
 
-void comp_class::code(ostream &s) {
+void comp_class::code(ostream &s, cgen_context ctx) {
+  int is_false = next_label();
+  int done_label = next_label();
+  
+  e1->code(s, ctx);
+  emit_fetch_int(T1, ACC, s); // $t1 = e1_int.val
+  emit_beq(T1, ZERO, is_false, s); // se $t1 = 0
+  emit_load_bool(ACC, BoolConst(0), s); // carrega true
+  emit_jump_to_label(done_label, s);
+  emit_label_def(is_false, s);
+  emit_load_bool(ACC, BoolConst(1), s); // carrega false
+  emit_label_def(done_label, s);
 }
 
-void int_const_class::code(ostream& s)  
+void int_const_class::code(ostream& s, cgen_context ctx)  
 {
-  //
-  // Need to be sure we have an IntEntry *, not an arbitrary Symbol
-  //
-  emit_load_int(ACC,inttable.lookup_string(token->get_string()),s);
+  emit_load_int(ACC, inttable.lookup_string(token->get_string()), s);
 }
 
-void string_const_class::code(ostream& s)
+void string_const_class::code(ostream& s, cgen_context ctx)
 {
-  emit_load_string(ACC,stringtable.lookup_string(token->get_string()),s);
+  emit_load_string(ACC, stringtable.lookup_string(token->get_string()), s);
 }
 
-void bool_const_class::code(ostream& s)
+void bool_const_class::code(ostream& s, cgen_context ctx)
 {
   emit_load_bool(ACC, BoolConst(val), s);
 }
 
-void new__class::code(ostream &s) {
+void new__class::code(ostream &s, cgen_context ctx) {
+	if (type_name == SELF_TYPE) {
+		emit_move(T1, SELF, s);
+		emit_load(T1, 0, T1, s); // pega o id da classe
+		emit_sll(T1, T1, 3, s);
+		emit_load_address(T2, "class_objTab", s);
+		emit_addu(T1, T1, T2, s); // $t1 = $t2 + $t1
+		emit_load(ACC, 0, T1, s);
+		emit_load(T2, 1, T1, s); // $t2 name_init 
+		emit_push(T2, s);
+		emit_jal("Object.copy", s);
+		emit_load(T2, 1, SP, s);
+		emit_addiu(SP, SP, 4, s);
+		emit_jalr(T2, s); // chamar o método name_init para achar na tabela de nomes
+	} else {
+		// Object.copy deve receber um parâmetro a0
+		char object[64];
+		char object_init[64];
+		char *name = type_name->get_string();
+		sprintf(object, "%s%s", name, PROTOBJ_SUFFIX);
+		sprintf(object_init, "%s%s", name, CLASSINIT_SUFFIX);
+		emit_load_address(ACC, object, s);  
+		emit_jal("Object.copy", s); // a0 armazena o novo objeto
+		emit_jal(object_init, s); // init não muda a0
+	}
 }
 
-void isvoid_class::code(ostream &s) {
+void isvoid_class::code(ostream &s, cgen_context ctx) {
+  int void_label = next_label();
+  int done_label = next_label();
+
+  e1->code(s, ctx);
+  emit_move(T1, ACC, s);
+  emit_beq(T1, ZERO, void_label, s); // se $t1 é vazio
+  emit_load_bool(ACC, BoolConst(0), s); // carrega true
+  emit_jump_to_label(done_label, s);
+  emit_label_def(void_label, s);
+  emit_load_bool(ACC, BoolConst(1), s); // carrega false
+  emit_label_def(done_label, s);
 }
 
-void no_expr_class::code(ostream &s) {
+void no_expr_class::code(ostream &s, cgen_context ctx) {
+  emit_move(ACC, ZERO, s);
 }
 
-void object_class::code(ostream &s) {
+void object_class::code(ostream &s, cgen_context ctx) {
+  // VERIFICAR COM O DANNIEL SOBRE ESSES 3 MÉTODOS DO cgen_context!!!
+  // se o objeto está em um escopo
+  if (ctx.get_scope_identifier_offset(name) != -1) {
+    emit_load(ACC, ctx.get_scope_identifier_offset(name) + 1, SP, s);
+    return;
+  }
+
+  // se o método são os argumentos
+  if (ctx.get_method_attr_offset(name) != -1) {
+    emit_load(ACC, 3 + ctx.get_method_attr_offset(name), FP, s);
+    return;
+  }
+
+  // se a classe são os atributos
+  if (ctx.get_class_attribute_identifier_offset(name) != -1) {
+    emit_load(ACC, ctx.get_class_attribute_identifier_offset(name), SELF, s);
+    return;
+  }
+
+  emit_move(ACC, SELF, s);
+  return;
 }
 
 
