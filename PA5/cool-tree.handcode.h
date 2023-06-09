@@ -161,8 +161,12 @@ virtual void dump_with_types(ostream& ,int) = 0;
 
 
 #define branch_EXTRAS                                   \
-void dump_with_types(ostream& ,int);
-
+void dump_with_types(ostream& ,int);				\
+Symbol type;                          \
+Symbol get_name() { return name; }    \
+Symbol get_type() { return type; }    \
+void set_type(Symbol s) { type = s; } \
+Symbol get_declaration_type() { return type_decl; }
 
 #define Expression_EXTRAS                    \
 Symbol type;                                 \
