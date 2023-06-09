@@ -77,7 +77,7 @@ typedef struct cgen_context
 
 	int get_method_attr_offset(Symbol id){
 		return (
-			method_attr_offset.find(id) != method_attr_offset.end() ? 
+			method_attr_offsets.find(id) != method_attr_offsets.end() ? 
 				method_attr_offset[id] : -1
 		);
 	}
