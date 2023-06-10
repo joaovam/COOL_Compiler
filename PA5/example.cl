@@ -63,7 +63,7 @@ class Main inherits E {
     -- abort()
     -- x.abort()
 
-    new G.i()
+    new G.i();
 
     -- Teste: despacho IO
     out_string("abc");
