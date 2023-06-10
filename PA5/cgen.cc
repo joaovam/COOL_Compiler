@@ -446,7 +446,7 @@ void StringEntry::code_def(ostream& s, int stringclasstag)
 
 
  /***** Add dispatch information for class String ******/
-
+      s << STRINGNAME << DISPTAB_SUFFIX;
       s << endl;                                              // dispatch table
       s << WORD;  lensym->code_ref(s);  s << endl;            // string length
   emit_string_constant(s,str);                                // ascii string
@@ -488,6 +488,7 @@ void IntEntry::code_def(ostream &s, int intclasstag)
       << WORD; 
 
  /***** Add dispatch information for class Int ******/
+      s << INTNAME << DISPTAB_SUFFIX;
 
       s << endl;                                          // dispatch table
       s << WORD << str << endl;                           // integer value
@@ -532,6 +533,7 @@ void BoolConst::code_def(ostream& s, int boolclasstag)
       << WORD;
 
  /***** Add dispatch information for class Bool ******/
+      s << BOOLNAME << DISPTAB_SUFFIX;
 
       s << endl;                                            // dispatch table
       s << WORD << val << endl;                             // value (0 or 1)
@@ -1078,9 +1080,11 @@ cgen_class_definition CgenClassTable::construct_cgen_class_definition(Class_ cla
                                       || cgen_definition.name == IO );
 
   if(cgen_debug)cout << "defining tag, dispatch table, methods and attrs for class: " << class_name <<endl;
-
+  
   cgen_definition.tag = classtag_of[class_name];
   cgen_definition.dispatch_table = this->class_methods[class_name];
+
+
   cgen_definition.attrs = this-> class_attributes[class_name];
   cgen_definition.method_definitions = this->class_method_defs[class_name];
   cgen_definition.attr_definitions = this->class_attribute_defs[class_name];
@@ -1151,7 +1155,7 @@ void CgenClassTable::emit_dispatchTables(){
 
 void CgenClassTable::emit_protObjs() {
   for(auto const &cgen_def : cgen_class_names){
-
+    emit_protObj_from(cgen_class_definition_of[cgen_def]);
   }
 }
 
