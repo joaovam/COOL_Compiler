@@ -1,287 +1,190 @@
-(*
-   The class A2I provides integer-to-string and string-to-integer
-conversion routines.  To use these routines, either inherit them
-in the class where needed, have a dummy variable bound to
-something of type A2I, or simpl write (new A2I).method(argument).
-*)
+-- Teste: criação de classes
+class A inherits IO {
+    a1 : Int; -- Teste: atributo não inicializado
+    a2 : Int <- 100; -- Teste: atributo inicializado
 
-
-(*
-   c2i   Converts a 1-character string to an integer.  Aborts
-         if the string is not "0" through "9"
-*)
-class A2I {
-
-     c2i(char : String) : Int {
-	if char = "0" then 0 else
-	if char = "1" then 1 else
-	if char = "2" then 2 else
-        if char = "3" then 3 else
-        if char = "4" then 4 else
-        if char = "5" then 5 else
-        if char = "6" then 6 else
-        if char = "7" then 7 else
-        if char = "8" then 8 else
-        if char = "9" then 9 else
-        { abort(); 0; }  -- the 0 is needed to satisfy the typchecker
-        fi fi fi fi fi fi fi fi fi fi
-     };
-
-(*
-   i2c is the inverse of c2i.
-*)
-     i2c(i : Int) : String {
-	if i = 0 then "0" else
-	if i = 1 then "1" else
-	if i = 2 then "2" else
-	if i = 3 then "3" else
-	if i = 4 then "4" else
-	if i = 5 then "5" else
-	if i = 6 then "6" else
-	if i = 7 then "7" else
-	if i = 8 then "8" else
-	if i = 9 then "9" else
-	{ abort(); ""; }  -- the "" is needed to satisfy the typchecker
-        fi fi fi fi fi fi fi fi fi fi
-     };
-
-(*
-   a2i converts an ASCII string into an integer.  The empty string
-is converted to 0.  Signed and unsigned strings are handled.  The
-method aborts if the string does not represent an integer.  Very
-long strings of digits produce strange answers because of arithmetic 
-overflow.
-
-*)
-     a2i(s : String) : Int {
-        if s.length() = 0 then 0 else
-	if s.substr(0,1) = "-" then ~a2i_aux(s.substr(1,s.length()-1)) else
-        if s.substr(0,1) = "+" then a2i_aux(s.substr(1,s.length()-1)) else
-           a2i_aux(s)
-        fi fi fi
-     };
-
-(*
-  a2i_aux converts the usigned portion of the string.  As a programming
-example, this method is written iteratively.
-*)
-     a2i_aux(s : String) : Int {
-	(let int : Int <- 0 in	
-           {	
-               (let j : Int <- s.length() in
-	          (let i : Int <- 0 in
-		    while i < j loop
-			{
-			    int <- int * 10 + c2i(s.substr(i,1));
-			    i <- i + 1;
-			}
-		    pool
-		  )
-	       );
-              int;
-	    }
-        )
-     };
-
-(*
-    i2a converts an integer to a string.  Positive and negative 
-numbers are handled correctly.  
-*)
-    i2a(i : Int) : String {
-	if i = 0 then "0" else 
-        if 0 < i then i2a_aux(i) else
-          "-".concat(i2a_aux(i * ~1)) 
-        fi fi
-    };
-	
-(*
-    i2a_aux is an example using recursion.
-*)		
-    i2a_aux(i : Int) : String {
-        if i = 0 then "" else 
-	    (let next : Int <- i / 10 in
-		i2a_aux(next).concat(i2c(i - next * 10))
-	    )
-        fi
-    };
-
+    f() : Int { 1 }; -- Teste: definição de métodos
 };
 
+class B inherits A {
+    b1 : String; 
+    b2 : String <- "abc";
 
-
-
-
-class Stack{
-    isNil(): Bool { true};
-    head(): String { { abort(); ""; } };
-
-    tail(): Stack { { abort(); self; } };
-
-    push(i : String) : Stack {
-        (new StackImpl).init(i, self)
-    };
-
+    g() : Int { 2 }; 
 };
 
-class StackImpl inherits Stack{
-    head: String <- "";
-    next: Stack;
-    
-    init(i: String, s: Stack): StackImpl{
-        {
-            head <- i;
-            next <- s;
-            self;
-        }
-    };
-    isNil(): Bool {false};
+class C inherits A {
+    c1 : Bool; 
+    c2 : Bool <- true;
 
-    head(): String{ head };
-    tail(): Stack { next };
-
+    f() : Int { 3 }; 
+    h() : Int { 4 }; 
 };
 
-class StackCommand{
+class D inherits B {};
 
-    command :String <- "";
-    
-    interpretCommand(c: String, stack: Stack): Stack{
-        {
-            new Stack;
-        }
-    };
+class E inherits B {};
+
+class F inherits C {
+  getA2() : Int { a2 };
 };
 
-class StackCommandShow inherits StackCommand{
-    interpretCommand(c: String, stack: Stack): Stack{
-        {
-            
-            while (not stack.isNil()) loop
+class Main inherits IO {
+  x : SELF_TYPE;
+
+  getB2() : String { b2 }; 
+
+  out_string(str : String) : SELF_TYPE {
+    self@IO.out_string(str.concat("\n"))
+  };
+
+  out_int(n : Int) : SELF_TYPE {
+    self@IO.out_int(n)@IO.out_string("\n")
+  };
+
+  -- Teste: new SELF_TYPE
+  i() : Object {
+      {
+          x <- new SELF_TYPE;
+          out_string(x.type_name());
+          out_int(x.getB2());
+      }
+  };
+
+  -- Teste: case
+  j(x : Object) : Object {
+      case x of
+          i : Int => out_int(1 + i);
+          s : String => out_string("Encontrou ".concat(s));
+          a : A => out_int(a.f());
+          m : Main => out_int(m.g());
+      esac
+  };
+
+  main(): Object {
+    {
+        -- self.abort()
+        -- abort()
+        -- x.abort()
+
+        new G.i()
+
+        -- Teste: despacho IO
+        out_string("abc");
+        out_int(100);
+        out_string("abc").out_int(100);
+
+        -- Teste: despacho objeto
+        out_string(type_name());
+        out_string(100.type_name());
+        out_string("abc".type_name());
+        out_string(true.type_name());
+        out_int(100.copy());
+
+        -- Teste: despacho String
+        out_int("abcde".length());
+        out_string("abc".concat("de"));
+        out_string("abcde".substr(3, 2));
+
+        -- Teste: despacho atributo não inicializado
+        out_int(a1);
+        out_string(b1);
+
+        -- Teste: despacho e atribuição de atributo inicializado
+        out_int(a2);
+        a2 <- 150;
+        out_int(a2);
+
+        out_string(b2);
+        b2 <- "def";
+        out_string(b2);
+
+        --Teste: let com e sem inicialização de atributos
+        let x1 : Int, x2 : Int <- 100, y1 : String, y2 : String <- "abc"
+
+        let f : F <- new F
+
+        let a : A <- new A, b : A <- new B, c : A <- new C
+
+        let x1 : Int <- 1, y1 : Int <- 2
+
+        -- Teste: while
+        let x2 : Int, 
+            y2 : Int,
+            z : Object <-
+            while x2 <= 10 loop
                 {
-                (new IO).out_string(stack.head());
-                (new IO).out_string("\n");
-                stack <- stack.tail();
-
+                y2 <- y2 + x2;
+                x2 <- x2 + 1;                
                 }
-            pool;
-            
+            pool
+        in {
+            out_int(y2);
+            out_int(x2);
+            out_string(if isvoid z then "OK" else "falhou" fi);
 
-            stack;
-            
+            out_int(x1);
+            x1 <- 150;
+            out_int(x1);
+            out_int(x2);
+            x2 <- 200;
+            out_int(x2);
+
+            out_string(y1);
+            y1 <- "def";
+            out_string(y1);
+            out_string(y2);
+            y2 <- "ghi";
+            out_string(y2);
+
+            -- Teste: nome de nova classe
+            out_string(f.type_name());
+            out_int(f.getA2());
+
+            -- Teste: despacho dinâmico
+            out_int(a.f());
+            out_int(b.f());
+            out_int(c@A.f()); -- Teste: despacho estático
+
+            -- Teste: operações aritméticas
+            out_int(x1 + y1);
+            out_int(x1 - y1);
+            out_int(x1 * y1);
+            out_int(x1 / y1);
+            out_int(~x1);
+            out_int(~3 * (4 - 12 / 6))
         }
-    };
- };
 
-class StackCommandStack inherits StackCommand{
+        -- Teste: if
+        out_string(if true then "YES1" else "NO1" fi);
+        out_string(if false then "YES2" else "NO2" fi);
 
-    interpretCommand(c: String, stack: Stack): Stack{
-        {
-            stack.push(c);
-        }
-    };
+        -- Teste: isvoid
+        out_string(if isvoid x then "x void" else "x not void" fi);
+        out_string(if isvoid self then "self void" else "self not void" fi);
+
+        -- Teste: not
+        out_string(if not true then "NO1" else "YES1" fi);
+        out_string(if not false then "NO2" else "YES2" fi);
+
+        -- Teste: igualdade e comparações
+        out_string(if 3 = 3 then "3 OK" else "3 falhou" fi);
+        out_string(if self = self then "self OK" else "self falhou" fi);
+        out_string(if x = self then "comp OK" else "comp falhou" fi);
+        out_string(if 3 < 5 then "OK" else "falhou" fi);
+        out_string(if 3 <= 5 then "OK" else "falhou" fi);
+        out_string(if 5 < 3 then "OK" else "falhou" fi);
+        out_string(if 5 <= 3 then "OK" else "falhou" fi);
+        out_string(if 3 < 3 then "OK" else "falhou" fi);
+        out_string(if 3 <= 3 then "OK" else "falhou" fi);
+
+        -- Teste: case
+        j(100);
+        j("abc");
+        j(self);
+        j(new A);
+    }
+  };
 };
 
--- class StackCommandSum inherits StackCommand{
-
--- }
-
--- class StackCommandSwap inherits StackCommand{
-
--- }
-
- class StackCommandEvaluate inherits StackCommand{
-    op: String <- "";
-    op1: String;
-    op2:String;
-    
-    interpretCommand(c: String, stack: Stack): Stack{
-        {
-            if (not stack.isNil()) then
-            op <- stack.head()
-            else false
-            fi;
-
-            if(op = "+") then
-            {
-                stack <- stack.tail();
-
-                op1 <- stack.head();
-                
-                stack <- stack.tail();
-
-                op2 <- stack.head();
-                
-                stack <- stack.tail();
-
-                stack <- stack.push(sum(op1, op2));
-            }
-            else if(op = "s") then
-            {
-                stack <- stack.tail();
-                op1 <- stack.head();
-                stack <- stack.tail();
-                op2 <- stack.head();
-                stack <- stack.tail();
-                stack <- stack.push(op1);
-                stack <- stack.push(op2);
-            }
-            else false
-            fi fi;
-
-            stack;
-        }
-    
-    };
-
-    sum(op1:String, op2: String): String{
-        {
-            (new A2I).i2a((new A2I).a2i(op1) + (new A2I).a2i(op2));
-        }
-    };
-
- };
-
-
-class Main inherits IO{
-    stack: Stack <- new Stack;
-    exec: Bool <- true;
-    op: String <- "";
-    main(): Object{
-        {
-        
-        while(exec) loop
-            {
-            out_string(">");
-
-            op <- in_string();
-
-            if(op = "d") 
-                then 
-                  interpretCommand(new StackCommandShow, stack, op)
-            
-            else if (op = "x")
-                then
-                exec <- false
-             else if(op = "e")
-                 then
-                 stack <- interpretCommand(new StackCommandEvaluate, stack, op)
-
-            else stack <- interpretCommand(new StackCommandStack, stack, op)
-
-            fi fi fi;
-            
-            -- else if(op = "|") 
-            --     then stack <- stack.push("|")
-            -- fi --fi
-            }
-        pool;
-
-        out_string("Goodbye!\n");    
-        }
-    };
-
-    interpretCommand(c:StackCommand, stack: Stack, s: String): Stack{
-        c.interpretCommand(s, stack)
-    };
-
-};
+class G inherits Main {};

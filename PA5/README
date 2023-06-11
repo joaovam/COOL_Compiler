@@ -167,11 +167,7 @@ Utilizamos essas estruturas para construir o protótipo das classes customizadas
 para gerar a tabela de nomes e de objetos para o código em assembly e gerar todo 
 o código referente às tabelas de despacho nome e herança e protótipo de objetos.
 
-Funções adicionadas ao CgenClassTable::code():
-
-emit_initialisers();
-	Função para emitir os inicializadores de todas as classes geradas. 
-
-emit_class_methods();
-	Função para emitir o código de todos os métodos de todas as classes geradas.
-	Apenas metódos definidos são emitidos. 
+Foram criados casos de teste no arquivo example.cl considerando os diferentes elementos
+ e regras da linguagem COOL. Dessa forma, foram testadas, a criação de classes, 
+ inicialização e atribuição de atributos, definição de métodos, diferentes despaches, 
+ utilização de let, operações aritméticas, condicionais, loops, entre outros.
