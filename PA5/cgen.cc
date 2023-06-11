@@ -1405,9 +1405,9 @@ void assign_class::code(ostream &s, cgen_context context) {
 
     expr->code(s, context); // valor registrado no endereço apontado por acc
 
-    int scope_stack_offset = context.get_scope_id_offset(name);
+    int scope_stack_offset = context.get_scope_identifier_offset(name);
     int method_arg_offset = context.get_method_attr_offset(name);
-    int class_attr_offset = context.get_class_attr_id_offset(name);
+    int class_attr_offset = context.get_class_attribute_identifier_offset(name);
     
     bool is_in_scope = scope_stack_offset != -1;
     bool is_method_argument = method_arg_offset != -1;
@@ -1446,14 +1446,14 @@ void static_dispatch_class::code(ostream &s, cgen_context context) {
     int actual_argument_ix = actual_method_args->first();
     int dispatch_start_label = next_label();
     int dispatch_offset = context.get_class_method_dispatch_offset(dispatch_target_type, name);
-    Class_ class_definition = context.self_class_def;
+    Class_ class_definition = context.self_class_definition;
 
     while (actual_method_args->more(actual_argument_ix))
     {
         Expression actual_argument = actual_method_args->nth(actual_argument_ix);
         actual_argument->code(s, context);
         emit_push(ACC, s);
-        context.push_scope_id(No_type);
+        context.push_scope_identifier(No_type);
         actual_argument_ix = actual_method_args->next(actual_argument_ix);
     }
 
@@ -1477,18 +1477,18 @@ void static_dispatch_class::code(ostream &s, cgen_context context) {
 void dispatch_class::code(ostream &s, cgen_context context) {
     
     Expressions actual_method_args = actual;
-    Symbol dispatch_target_type = expr->get_type() == SELF_TYPE ? context.class_name : expr->get_type();
+    Symbol dispatch_target_type = expr->get_type() == SELF_TYPE ? context.self_name : expr->get_type();
     int actual_argument_ix = actual_method_args->first();
     int dispatch_start_label = next_label();
     int dispatch_offset = context.get_class_method_dispatch_offset(dispatch_target_type, name);
-    Class_ class_definition = context.self_class_def;
+    Class_ class_definition = context.self_class_definition;
 
     while (actual_method_args->more(actual_argument_ix))
     {
         Expression actual_argument = actual_method_args->nth(actual_argument_ix);
         actual_argument->code(s, context);
         emit_push(ACC, s);
-        context.push_scope_id(No_type);
+        context.push_scope_identifier(No_type);
         actual_argument_ix = actual_method_args->next(actual_argument_ix);
     }
 
@@ -1549,7 +1549,7 @@ void loop_class::code(ostream &s, cgen_context context) {
 
 void typcase_class::code(ostream &s, cgen_context context) {
 
-    Class_ class_definition = context.self_class_def;
+    Class_ class_definition = context.self_class_definition;
     int typcase_exp_save_to_check = next_label();
     int typcase_match_failure_label = next_label();
     int typcase_branch_match_succesfull_label = next_label();
@@ -1566,7 +1566,7 @@ void typcase_class::code(ostream &s, cgen_context context) {
         branch_class* branch = static_cast<branch_class*>(cases->nth(i));
         Symbol branch_static_type = branch->get_declaration_type();
         branches[branch_static_type] = branch;
-        branches_classtype_tags[branch_static_type] = context.classtag[branch_static_type];
+        branches_classtype_tags[branch_static_type] = context.classtag_of[branch_static_type];
         branches_match_labels[branch_static_type] = next_label();
         branch_types.push_back(branch_static_type);
     }
@@ -1630,12 +1630,12 @@ void typcase_class::code(ostream &s, cgen_context context) {
         emit_label_def(branch_matched_label, s);
 
         emit_push(ACC, s);
-        context.push_scope_id(branch->get_name());
+        context.push_scope_identifier(branch->get_name());
 
         branch->expr->code(s, context);
 
         emit_pop_without_load(s);
-        context.pop_scope_id();
+        context.pop_scope_identifier();
 
         emit_jump_to_label(typcase_branch_match_succesfull_label, s);
     }
@@ -1678,11 +1678,11 @@ void let_class::code(ostream &s, cgen_context context) {
         }
     }
 
-    context.push_scope_id(identifier);
+    context.push_scope_identifier(identifier);
     emit_push(ACC, s);
     body->code(s, context);
     emit_pop_without_load(s);
-    context.pop_scope_id();
+    context.pop_scope_identifier();
 }
 
 // Geração de código para as operações +, -, * e /, respectivamente
@@ -1691,11 +1691,11 @@ void plus_class::code(ostream &s, cgen_context context) {
 
     this->e1->code(s, context);
     emit_push(ACC, s);
-    context.push_scope_id(No_type);
+    context.push_scope_identifier(No_type);
     this->e2->code(s, context);
     emit_jal("Object.copy", s);
     emit_pop(T1, s);
-    context.pop_scope_id();
+    context.pop_scope_identifier();
 
     emit_fetch_int(T1, T1, s);
     emit_fetch_int(T2, ACC, s);
@@ -1707,11 +1707,11 @@ void sub_class::code(ostream &s, cgen_context context) {
 
     this->e1->code(s, context);
     emit_push(ACC, s);
-    context.push_scope_id(No_type);
+    context.push_scope_identifier(No_type);
     this->e2->code(s, context);
     emit_jal("Object.copy", s);
     emit_pop(T1, s);
-    context.pop_scope_id();
+    context.pop_scope_identifier();
     emit_fetch_int(T1, T1, s);
     emit_fetch_int(T2, ACC, s);
     emit_sub(T3, T1, T2, s);
@@ -1722,11 +1722,11 @@ void mul_class::code(ostream &s, cgen_context context) {
 
     this->e1->code(s, context);
     emit_push(ACC, s);
-    context.push_scope_id(No_type);
+    context.push_scope_identifier(No_type);
     this->e2->code(s, context);
     emit_jal("Object.copy", s);
     emit_pop(T1, s);
-    context.pop_scope_id();
+    context.pop_scope_identifier();
     emit_fetch_int(T1, T1, s);
     emit_fetch_int(T2, ACC, s);
     emit_mul(T3, T1, T2, s);
@@ -1737,11 +1737,11 @@ void divide_class::code(ostream &s, cgen_context context) {
 
     this->e1->code(s, context);
     emit_push(ACC, s);
-    context.push_scope_id(No_type);
+    context.push_scope_identifier(No_type);
     this->e2->code(s, context);
     emit_jal("Object.copy", s);
     emit_pop(T1, s);
-    context.pop_scope_id();
+    context.pop_scope_identifier();
     emit_fetch_int(T1, T1, s);
     emit_fetch_int(T2, ACC, s);
     emit_div(T3, T1, T2, s);
