@@ -1185,18 +1185,25 @@ void CgenClassTable::emit_default_values_for_attr(Symbol type){
     str << "0";
 }
 
+// Função para emitir o inicializador de uma classe
 void CgenClassTable::emit_initialiser(cgen_class_definition cgen_def){
+  // Escreve o nome da classe seguido do sufixo de inicialização e um rótulo
   str << cgen_def.name << CLASSINIT_SUFFIX << LABEL;
 
+  // Emite comandos para salvar os registros do quadro de ativação
   emit_spill_activation_record_registers(str);
+  // Configura o ponteiro do quadro de ativação
   emit_setup_frame_pointer(str);
+  // Configura o ponteiro self
   emit_setup_self_pointer(str);
 
+  // Se a classe não for Object, emite um comando para chamar o inicializador da classe pai
   if (cgen_def.name != Object) {
     emit_jal_without_address(str);
     str << inheritance_parent[cgen_def.name] << CLASSINIT_SUFFIX << endl;
   }
 
+  // Cria um contexto de geração de código para a classe
   cgen_context contx;
   contx.class_name = cgen_def.name;
   contx.class_attr_offsets = cgen_def.attr_offset;
@@ -1204,10 +1211,12 @@ void CgenClassTable::emit_initialiser(cgen_class_definition cgen_def){
   contx.dispatch_offsets = dispatch_offsets_of_class_methods;
   contx.classtag = classtag_of;
   
+  // Para cada atributo da classe, gera o código para inicializá-lo
   for (auto const& attr_name : cgen_def.attrs){
     Expression attr_init_expr = cgen_def.attr_definitions[attr_name]->get_init_expr();
     bool has_init_expr = dynamic_cast<no_expr_class*>(attr_init_expr) == nullptr;
 
+    // Se o atributo tem uma expressão de inicialização e é diretamente possuído pela classe, gera o código para inicializá-lo
     if(has_init_expr &&
        cgen_def.is_directly_owned(attr_name)) {
         attr_init_expr->code(str, contx);
@@ -1216,17 +1225,21 @@ void CgenClassTable::emit_initialiser(cgen_class_definition cgen_def){
 
   }
 
+  // Move o ponteiro self para o acumulador e restaura os registros do quadro de ativação
   emit_move(ACC, SELF, str);
   emit_bring_back_activation_record_registers(str);
+  // Emite o comando de retorno
   emit_return(str);
 }
 
+// Função para emitir os inicializadores de todas as classes
 void CgenClassTable::emit_initialisers(){
   for(auto const &cgen_def : cgen_class_names){
     emit_initialiser(cgen_class_definition_of[cgen_def]);
   }
 }
 
+// Função para obter os deslocamentos dos argumentos de um método
 std::map<Symbol, int> get_method_args_offsets(method_class* method_def){
   std::map<Symbol, int> args_offset;
 
@@ -1248,14 +1261,16 @@ std::map<Symbol, int> get_method_args_offsets(method_class* method_def){
     declared_arg = declared_method_args->nth(declared_argument_i);
     declared_arg_name = declared_arg->get_name();
     
-    args_offset[declared_arg_name] = arg_offset;
+    // Adiciona o deslocamento do argumento ao mapa    args_offset[declared_arg_name] = arg_offset;
     arg_offset--;
     declared_argument_i = declared_method_args->next(declared_argument_i);
   }
   return args_offset;
 }
 
+// Função para emitir o código de um método
 void CgenClassTable::emit_method(cgen_class_definition cgen_def, method_class* method_def){
+  // Cria um contexto de geração de código para o método
   cgen_context contx;
   contx.class_name = cgen_def.name;
   contx.class_attr_offsets = cgen_def.attr_offset;
@@ -1265,36 +1280,49 @@ void CgenClassTable::emit_method(cgen_class_definition cgen_def, method_class* m
   contx.method_name = method_def->get_name();
   contx.classtag = classtag_of;
 
+  // Emite a referência ao método
   emit_method_ref(contx.class_name, contx.method_name, str);
   str << LABEL;
+  // Salva os registros do quadro de ativação
   emit_spill_activation_record_registers(str);
+  // Configura o ponteiro do quadro de ativação
   emit_setup_frame_pointer(str);
+  // Configura o ponteiro self
   emit_setup_self_pointer(str);
 
+  // Gera o código para o corpo do método
   method_def->get_body_expr()->code(str, contx);
+  // Restaura os registros do quadro de ativação
   emit_bring_back_activation_record_registers(str);
 
+  // Desempilha os argumentos do método sem carregá-los
   for(int i = 0; i < contx.method_attr_offsets.size(); i++){
     emit_pop_without_load(str);
     contx.pop_scope_id();
   }
+  // Emite o comando de retorno
   emit_return(str);
 }
 
+// Função para emitir o código de todos os métodos de uma classe
 void CgenClassTable::emit_methods(cgen_class_definition cgen_def){
   for(auto const &x : cgen_def.method_definitions){
+    // Se a classe está definindo o método, emite o código para ele
     if(cgen_def.is_defining_method(x.first)){
       emit_method(cgen_def, x.second);
     }
   }
 }
 
+// Função para emitir o código de todos os métodos de todas as classes
 void CgenClassTable::emit_class_methods(){
   for(auto const &cgen_def : cgen_class_names){
+    // Se a classe não é um tipo primitivo, emite o código para seus métodos
     if(!cgen_class_definition_of[cgen_def].is_primitive_type)
       emit_methods(cgen_class_definition_of[cgen_def]);
   }
 }
+
 
 void CgenClassTable::code()
 {

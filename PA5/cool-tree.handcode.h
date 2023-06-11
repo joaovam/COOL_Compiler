@@ -46,6 +46,9 @@ typedef Expressions_class *Expressions;
 typedef list_node<Case> Cases_class;
 typedef Cases_class *Cases;
 
+//--------
+// Estrutura para facilitar o controle de contexto de cada 
+// pedaço da geração de código.
 typedef struct cgen_context
 {
 	Symbol	class_name;
