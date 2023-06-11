@@ -160,6 +160,12 @@ Instructions
 
 Write-up for PA5
 ----------------
-No trabalho realizamos a geração de código para a linguagem cool. Começamos caminhando pela árvore de herança e através dela escaneando as classes, seus atributos e métodos, e montando estruturas de dados para sintetizar seu conteúdo. Utilizamos essas estruturas para construir o protótipo das classes customizadas e para gerar a tabela de nomes e de objetos para o código em assembly e gerar todo o código referente às tabelas de despacho nome e herança e protótipo de objetos.
+No trabalho realizamos a geração de código para a linguagem COOL. 
+Começamos caminhando pela árvore de herança e através dela escaneando as classes, 
+seus atributos e métodos, e montando estruturas de dados para sintetizar seu conteúdo. 
+Utilizamos essas estruturas para construir o protótipo das classes customizadas e 
+para gerar a tabela de nomes e de objetos para o código em assembly e gerar todo 
+o código referente às tabelas de despacho nome e herança e protótipo de objetos.
+
 
 
