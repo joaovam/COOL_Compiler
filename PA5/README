@@ -167,5 +167,11 @@ Utilizamos essas estruturas para construir o protótipo das classes customizadas
 para gerar a tabela de nomes e de objetos para o código em assembly e gerar todo 
 o código referente às tabelas de despacho nome e herança e protótipo de objetos.
 
+Funções adicionadas ao CgenClassTable::code():
 
+emit_initialisers();
+	Função para emitir os inicializadores de todas as classes geradas. 
 
+emit_class_methods();
+	Função para emitir o código de todos os métodos de todas as classes geradas.
+	Apenas metódos definidos são emitidos. 
